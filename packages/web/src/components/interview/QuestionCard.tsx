@@ -16,7 +16,16 @@ interface QuestionCardProps {
 }
 
 export function QuestionCard({ question, value, onChange, onSubmit, onSkip }: QuestionCardProps) {
-  const isDisabled = question.required && !value;
+  const isValueEmpty = () => {
+    if (value === undefined || value === null) return true;
+    if (question.type === 'boolean') return false;
+    if (question.type === 'text') return (value as string).trim() === '';
+    if (question.type === 'multiselect') return (value as string[]).length === 0;
+    if (question.type === 'choice') return value === '';
+    return !value;
+  };
+  
+  const isDisabled = question.required && isValueEmpty();
 
   const renderInput = () => {
     switch (question.type) {
