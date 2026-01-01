@@ -42,7 +42,7 @@ export const DISCOVERY_STAGE_SESSION: StoredSession = createSessionFixture({
   },
   requirements: {
     name: 'Test Agent',
-    description: 'Test Agent agent',
+    description: 'Test Agent',
   },
 });
 
