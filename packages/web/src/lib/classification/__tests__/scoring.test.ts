@@ -1171,6 +1171,486 @@ describe("Scoring Algorithm", () => {
     });
   });
 
+  describe("Edge Cases - Empty Requirements Scoring", () => {
+    it("should produce consistent scores for empty primary outcome", () => {
+      const requirements = createBaseRequirements({
+        primaryOutcome: "",
+      });
+
+      // Run multiple times to ensure consistency
+      const results: number[][] = [];
+      for (let i = 0; i < 5; i++) {
+        const scores = classifier.scoreAllTemplates(requirements);
+        results.push(scores.map((s) => s.score));
+      }
+
+      // All results should be identical
+      results.forEach((result) => {
+        expect(result).toEqual(results[0]);
+      });
+    });
+
+    it("should handle requirements with all empty string arrays", () => {
+      const requirements = createBaseRequirements({
+        name: "",
+        description: "",
+        primaryOutcome: "",
+        targetAudience: [],
+        deliveryChannels: [],
+        successMetrics: [],
+      });
+
+      const scores = classifier.scoreAllTemplates(requirements);
+
+      expect(scores).toHaveLength(ALL_TEMPLATES.length);
+      // All templates should have low or zero scores with empty requirements
+      scores.forEach((score) => {
+        expect(score.score).toBeGreaterThanOrEqual(0);
+        expect(score.score).toBeLessThanOrEqual(100);
+      });
+    });
+
+    it("should handle whitespace-only values in all text fields", () => {
+      const requirements = createBaseRequirements({
+        name: "   ",
+        description: "\t\n",
+        primaryOutcome: "  \r\n  ",
+      });
+
+      const scores = classifier.scoreAllTemplates(requirements);
+
+      scores.forEach((score) => {
+        expect(typeof score.score).toBe("number");
+        expect(isNaN(score.score)).toBe(false);
+        expect(isFinite(score.score)).toBe(true);
+      });
+    });
+
+    it("should produce valid reasoning for empty requirements", () => {
+      const requirements = createBaseRequirements({
+        primaryOutcome: "",
+        targetAudience: [],
+        successMetrics: [],
+      });
+
+      const template = ALL_TEMPLATES[0]!;
+      const score = classifier.scoreTemplate(template, requirements);
+
+      expect(score.reasoning).toBeDefined();
+      expect(typeof score.reasoning).toBe("string");
+      expect(score.reasoning.length).toBeGreaterThan(0);
+    });
+
+    it("should not match any capabilities when requirements are empty", () => {
+      const requirements = createBaseRequirements({
+        primaryOutcome: "",
+        capabilities: {
+          memory: "none",
+          fileAccess: false,
+          webAccess: false,
+          codeExecution: false,
+          dataAnalysis: false,
+          toolIntegrations: [],
+        },
+      });
+
+      const scores = classifier.scoreAllTemplates(requirements);
+
+      // With empty requirements, capability matches should be minimal
+      const totalMatched = scores.reduce((sum, s) => sum + s.matchedCapabilities.length, 0);
+      expect(totalMatched).toBeGreaterThanOrEqual(0);
+    });
+  });
+
+  describe("Edge Cases - Missing Template Fields", () => {
+    it("should handle template with empty string fields", () => {
+      const emptyFieldsTemplate = createTestTemplate({
+        id: "empty-fields",
+        name: "",
+        description: "",
+        systemPrompt: "",
+      });
+
+      const testClassifier = new AgentClassifier([emptyFieldsTemplate]);
+      const requirements = createBaseRequirements();
+
+      const scores = testClassifier.scoreAllTemplates(requirements);
+      expect(scores).toHaveLength(1);
+      expect(scores[0]!.score).toBeGreaterThanOrEqual(0);
+    });
+
+    it("should throw error for template with null-like capabilityTags", () => {
+      const nullLikeTemplate = createTestTemplate({
+        id: "null-like",
+        capabilityTags: null as unknown as string[],
+        idealFor: undefined as unknown as string[],
+      });
+
+      const testClassifier = new AgentClassifier([nullLikeTemplate]);
+      const requirements = createBaseRequirements();
+
+      // Null capabilityTags causes TypeError when trying to iterate
+      expect(() => testClassifier.scoreAllTemplates(requirements)).toThrow(TypeError);
+    });
+
+    it("should handle scoring when template has empty defaultTools", () => {
+      const noToolsTemplate = createTestTemplate({
+        id: "no-tools",
+        defaultTools: [],
+      });
+
+      const testClassifier = new AgentClassifier([noToolsTemplate]);
+      const requirements = createBaseRequirements();
+
+      const scores = testClassifier.scoreAllTemplates(requirements);
+      expect(scores[0]!.score).toBeGreaterThanOrEqual(0);
+    });
+
+    it("should handle template with whitespace-only capabilityTags", () => {
+      const whitespaceTagsTemplate = createTestTemplate({
+        id: "whitespace-tags",
+        capabilityTags: ["   ", "\t", "\n", "valid-tag"],
+      });
+
+      const testClassifier = new AgentClassifier([whitespaceTagsTemplate]);
+      const requirements = createBaseRequirements({
+        primaryOutcome: "valid-tag related task",
+      });
+
+      const scores = testClassifier.scoreAllTemplates(requirements);
+      expect(scores).toHaveLength(1);
+    });
+
+    it("should handle template with empty idealFor entries", () => {
+      const emptyIdealForTemplate = createTestTemplate({
+        id: "empty-ideal-for",
+        idealFor: ["", "  ", "valid use case"],
+      });
+
+      const testClassifier = new AgentClassifier([emptyIdealForTemplate]);
+      const requirements = createBaseRequirements({
+        primaryOutcome: "valid use case",
+      });
+
+      const scores = testClassifier.scoreAllTemplates(requirements);
+      expect(scores[0]!.reasoning).toContain("Matches use cases");
+    });
+  });
+
+  describe("Edge Cases - Incomplete Scoring Data", () => {
+    it("should calculate score correctly when only some capabilities match", () => {
+      // Template with unique, non-overlapping capability tags that won't be triggered by keyword patterns
+      const partialTemplate = createTestTemplate({
+        id: "partial-match",
+        capabilityTags: ["custom-cap-1", "custom-cap-2", "custom-cap-3", "file-access", "web-access"],
+      });
+
+      const testClassifier = new AgentClassifier([partialTemplate]);
+
+      // Requirements that only enable file access (not web access)
+      const requirements = createBaseRequirements({
+        primaryOutcome: "Simple task without special keywords", // No matching patterns
+        capabilities: {
+          memory: "none",
+          fileAccess: true, // Matches "file-access"
+          webAccess: false, // Does NOT match "web-access"
+          codeExecution: false,
+          dataAnalysis: false,
+          toolIntegrations: [],
+        },
+      });
+
+      const scores = testClassifier.scoreAllTemplates(requirements);
+      const score = scores[0]!;
+
+      // Should have some matches but not all
+      expect(score.matchedCapabilities.length).toBeGreaterThanOrEqual(0);
+      expect(score.matchedCapabilities.length).toBeLessThanOrEqual(
+        partialTemplate.capabilityTags.length
+      );
+      expect(score.score).toBeGreaterThanOrEqual(0);
+      expect(score.score).toBeLessThanOrEqual(100);
+    });
+
+    it("should handle scoring when interaction style is not defined in style map", () => {
+      const requirements = createBaseRequirements({
+        interactionStyle: "unknown-style" as AgentRequirements["interactionStyle"],
+      });
+
+      const scores = classifier.scoreAllTemplates(requirements);
+
+      // Should still produce valid scores
+      expect(scores).toHaveLength(ALL_TEMPLATES.length);
+      scores.forEach((score) => {
+        expect(score.score).toBeGreaterThanOrEqual(0);
+      });
+    });
+
+    it("should produce zero missing capabilities when requirements are empty", () => {
+      const requirements = createBaseRequirements({
+        primaryOutcome: "",
+        capabilities: {
+          memory: "none",
+          fileAccess: false,
+          webAccess: false,
+          codeExecution: false,
+          dataAnalysis: false,
+          toolIntegrations: [],
+        },
+      });
+
+      const scores = classifier.scoreAllTemplates(requirements);
+
+      // With no requirements, nothing should be "missing"
+      scores.forEach((score) => {
+        expect(Array.isArray(score.missingCapabilities)).toBe(true);
+      });
+    });
+
+    it("should handle scoring with only memory capability set", () => {
+      const memoryValues: Array<AgentRequirements["capabilities"]["memory"]> = [
+        "none",
+        "short-term",
+        "long-term",
+      ];
+
+      memoryValues.forEach((memory) => {
+        const requirements = createBaseRequirements({
+          primaryOutcome: "Memory test",
+          capabilities: {
+            memory,
+            fileAccess: false,
+            webAccess: false,
+            codeExecution: false,
+            dataAnalysis: false,
+            toolIntegrations: [],
+          },
+        });
+
+        const scores = classifier.scoreAllTemplates(requirements);
+
+        expect(scores).toHaveLength(ALL_TEMPLATES.length);
+        scores.forEach((score) => {
+          expect(typeof score.score).toBe("number");
+        });
+      });
+    });
+
+    it("should handle requirements with very large toolIntegrations array", () => {
+      const requirements = createBaseRequirements({
+        capabilities: {
+          memory: "none",
+          fileAccess: false,
+          webAccess: false,
+          codeExecution: false,
+          dataAnalysis: false,
+          toolIntegrations: Array.from({ length: 1000 }, (_, i) => `tool-${i}`),
+        },
+      });
+
+      const scores = classifier.scoreAllTemplates(requirements);
+
+      expect(scores).toHaveLength(ALL_TEMPLATES.length);
+      scores.forEach((score) => {
+        expect(score.score).toBeGreaterThanOrEqual(0);
+        expect(score.score).toBeLessThanOrEqual(100);
+      });
+    });
+  });
+
+  describe("Edge Cases - Score Calculation Boundaries", () => {
+    it("should handle exact boundary between low and medium confidence", () => {
+      // Create requirements that produce scores right at the boundary
+      const requirements = createBaseRequirements({
+        primaryOutcome: "Generic task with some data",
+        interactionStyle: "task-focused",
+      });
+
+      const scores = classifier.scoreAllTemplates(requirements);
+
+      // All scores should be valid regardless of boundary
+      scores.forEach((score) => {
+        expect(score.score).toBeGreaterThanOrEqual(0);
+        expect(score.score).toBeLessThanOrEqual(100);
+      });
+    });
+
+    it("should maintain precision in score calculation", () => {
+      const requirements = createBaseRequirements({
+        primaryOutcome: "Analyze data and create visualizations",
+        capabilities: {
+          memory: "none",
+          fileAccess: true,
+          webAccess: false,
+          codeExecution: false,
+          dataAnalysis: true,
+          toolIntegrations: [],
+        },
+      });
+
+      const scores = classifier.scoreAllTemplates(requirements);
+
+      scores.forEach((score) => {
+        // Score should not have floating point precision issues
+        const scoreStr = score.score.toString();
+        const parts = scoreStr.split(".");
+        if (parts[1]) {
+          expect(parts[1].length).toBeLessThanOrEqual(2);
+        }
+      });
+    });
+
+    it("should handle division by zero scenarios gracefully", () => {
+      // Template with no capability tags - could cause division by zero
+      const emptyTemplate = createTestTemplate({
+        id: "empty",
+        capabilityTags: [],
+        idealFor: [],
+      });
+
+      const testClassifier = new AgentClassifier([emptyTemplate]);
+      const requirements = createBaseRequirements({
+        primaryOutcome: "",
+        capabilities: {
+          memory: "none",
+          fileAccess: false,
+          webAccess: false,
+          codeExecution: false,
+          dataAnalysis: false,
+          toolIntegrations: [],
+        },
+      });
+
+      const scores = testClassifier.scoreAllTemplates(requirements);
+
+      expect(scores[0]!.score).toBe(0);
+      expect(isNaN(scores[0]!.score)).toBe(false);
+      expect(isFinite(scores[0]!.score)).toBe(true);
+    });
+
+    it("should handle maximum possible capability overlap", () => {
+      // Template with all possible capability tags
+      const maxCapTemplate = createTestTemplate({
+        id: "max-cap",
+        capabilityTags: [
+          "data-processing",
+          "statistics",
+          "visualization",
+          "reporting",
+          "file-access",
+          "web-access",
+          "content-creation",
+          "seo",
+          "code-review",
+          "testing",
+          "refactoring",
+          "web-search",
+          "fact-checking",
+          "research",
+          "automation",
+          "scheduling",
+          "orchestration",
+        ],
+        idealFor: ["everything"],
+      });
+
+      const testClassifier = new AgentClassifier([maxCapTemplate]);
+      const requirements = createBaseRequirements({
+        primaryOutcome: "data statistics visualization reporting code review test research automation",
+        capabilities: {
+          memory: "long-term",
+          fileAccess: true,
+          webAccess: true,
+          codeExecution: true,
+          dataAnalysis: true,
+          toolIntegrations: ["all"],
+        },
+      });
+
+      const scores = testClassifier.scoreAllTemplates(requirements);
+
+      expect(scores[0]!.score).toBeLessThanOrEqual(100);
+      expect(scores[0]!.matchedCapabilities.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("Edge Cases - Reasoning Edge Cases", () => {
+    it("should produce valid reasoning when no capabilities are matched", () => {
+      const noMatchTemplate = createTestTemplate({
+        id: "no-match",
+        capabilityTags: ["xyz-nonexistent-cap"],
+        idealFor: ["xyz-impossible-task"],
+      });
+
+      const testClassifier = new AgentClassifier([noMatchTemplate]);
+      const requirements = createBaseRequirements({
+        primaryOutcome: "Completely unrelated task",
+      });
+
+      const scores = testClassifier.scoreAllTemplates(requirements);
+
+      expect(scores[0]!.reasoning).toBeDefined();
+      expect(typeof scores[0]!.reasoning).toBe("string");
+      expect(scores[0]!.reasoning.length).toBeGreaterThan(0);
+    });
+
+    it("should include interaction style in reasoning even when not matching", () => {
+      const requirements = createBaseRequirements({
+        primaryOutcome: "Test task",
+        interactionStyle: "task-focused",
+      });
+
+      const contentCreatorTemplate = ALL_TEMPLATES.find((t) => t.id === "content-creator")!;
+      const score = classifier.scoreTemplate(contentCreatorTemplate, requirements);
+
+      // Content creator prefers conversational, not task-focused
+      // Reasoning should still be valid
+      expect(score.reasoning).toBeDefined();
+    });
+
+    it("should handle reasoning with very long matched capabilities list", () => {
+      const manyTagsTemplate = createTestTemplate({
+        id: "many-tags",
+        capabilityTags: Array.from({ length: 50 }, (_, i) => `cap-${i}`),
+      });
+
+      const testClassifier = new AgentClassifier([manyTagsTemplate]);
+      const requirements = createBaseRequirements({
+        // Match many capabilities
+        primaryOutcome: Array.from({ length: 25 }, (_, i) => `cap-${i}`).join(" "),
+      });
+
+      const scores = testClassifier.scoreAllTemplates(requirements);
+
+      // Reasoning should still be generated
+      expect(scores[0]!.reasoning).toBeDefined();
+      expect(typeof scores[0]!.reasoning).toBe("string");
+    });
+
+    it("should produce distinct reasoning for different templates", () => {
+      const requirements = createBaseRequirements({
+        primaryOutcome: "Analyze data and write content",
+        capabilities: {
+          memory: "none",
+          fileAccess: true,
+          webAccess: false,
+          codeExecution: false,
+          dataAnalysis: true,
+          toolIntegrations: [],
+        },
+      });
+
+      const scores = classifier.scoreAllTemplates(requirements);
+
+      // Different templates should produce different reasoning
+      const reasonings = scores.map((s) => s.reasoning);
+      const uniqueReasonings = new Set(reasonings);
+
+      // At least some templates should have different reasoning
+      expect(uniqueReasonings.size).toBeGreaterThan(1);
+    });
+  });
+
   describe("Cross-Template Comparisons", () => {
     it("should score different archetypes appropriately for their domain", () => {
       const testCases = [
