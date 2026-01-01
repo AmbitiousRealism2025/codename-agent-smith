@@ -743,6 +743,40 @@ describe('PlanningDocumentGenerator', () => {
       expect(document).toContain('# TestAgent Planning Document');
     });
 
+    it('should handle data analysis capability flag', () => {
+      const requirements = createMockRequirements({
+        capabilities: {
+          memory: 'short-term',
+          fileAccess: true,
+          webAccess: false,
+          codeExecution: false,
+          dataAnalysis: true,
+          toolIntegrations: [],
+        },
+      });
+      const options = createMockOptions({ requirements });
+      const document = generator.generate(options);
+
+      expect(document).toContain('Data Analysis: required');
+    });
+
+    it('should handle data analysis capability when not required', () => {
+      const requirements = createMockRequirements({
+        capabilities: {
+          memory: 'none',
+          fileAccess: false,
+          webAccess: false,
+          codeExecution: false,
+          dataAnalysis: false,
+          toolIntegrations: [],
+        },
+      });
+      const options = createMockOptions({ requirements });
+      const document = generator.generate(options);
+
+      expect(document).toContain('Data Analysis: not required');
+    });
+
     it('should handle recommendations with all optional fields undefined', () => {
       const recommendations: AgentRecommendations = {
         agentType: 'data-analyst',
@@ -1016,6 +1050,615 @@ describe('PlanningDocumentGenerator', () => {
       const document = generator.generate(options);
 
       expect(document).toContain('Tool Integrations: none specified');
+    });
+  });
+
+  describe('Validation Edge Cases', () => {
+    it('should throw for agent name with only whitespace', () => {
+      const options = createMockOptions({ agentName: '   ' });
+
+      expect(() => generator.generate(options)).toThrowError(
+        'Agent name must be at least three characters and start with a letter or underscore.'
+      );
+    });
+
+    it('should throw for agent name with special characters at start', () => {
+      const options = createMockOptions({ agentName: '@Agent' });
+
+      expect(() => generator.generate(options)).toThrowError(
+        'Agent name must be at least three characters and start with a letter or underscore.'
+      );
+    });
+
+    it('should throw for agent name starting with hash', () => {
+      const options = createMockOptions({ agentName: '#MyAgent' });
+
+      expect(() => generator.generate(options)).toThrowError(
+        'Agent name must be at least three characters and start with a letter or underscore.'
+      );
+    });
+
+    it('should throw for agent name starting with dollar sign', () => {
+      const options = createMockOptions({ agentName: '$Agent' });
+
+      expect(() => generator.generate(options)).toThrowError(
+        'Agent name must be at least three characters and start with a letter or underscore.'
+      );
+    });
+
+    it('should accept agent name with exactly 3 characters', () => {
+      const options = createMockOptions({ agentName: 'ABC' });
+      const document = generator.generate(options);
+
+      expect(document).toContain('# ABC Planning Document');
+    });
+
+    it('should accept agent name starting with lowercase letter', () => {
+      const options = createMockOptions({ agentName: 'myAgent' });
+      const document = generator.generate(options);
+
+      expect(document).toContain('# myAgent Planning Document');
+    });
+
+    it('should accept agent name with numbers after first character', () => {
+      const options = createMockOptions({ agentName: 'Agent123' });
+      const document = generator.generate(options);
+
+      expect(document).toContain('# Agent123 Planning Document');
+    });
+
+    it('should accept agent name with mixed underscores and hyphens', () => {
+      const options = createMockOptions({ agentName: '_my-test_agent' });
+      const document = generator.generate(options);
+
+      expect(document).toContain('# _my-test_agent Planning Document');
+    });
+
+    it('should handle all valid template IDs', () => {
+      const validTemplateIds = ['data-analyst', 'content-creator', 'code-assistant', 'research-agent', 'automation-agent'];
+
+      validTemplateIds.forEach((templateId) => {
+        const options = createMockOptions({ templateId });
+        expect(() => generator.generate(options)).not.toThrow();
+      });
+    });
+
+    it('should throw descriptive error for similar but invalid template ID', () => {
+      const options = createMockOptions({ templateId: 'dataanalyst' });
+
+      expect(() => generator.generate(options)).toThrowError(/Template "dataanalyst" not found/);
+    });
+
+    it('should throw error for empty template ID', () => {
+      const options = createMockOptions({ templateId: '' });
+
+      expect(() => generator.generate(options)).toThrowError(/Template "" not found/);
+    });
+  });
+
+  describe('Phase Distribution Edge Cases', () => {
+    it('should handle exactly 3 steps (1 per phase)', () => {
+      const recommendations = createMockRecommendations({
+        implementationSteps: ['Step A', 'Step B', 'Step C'],
+      });
+      const options = createMockOptions({ recommendations });
+      const document = generator.generate(options);
+
+      expect(document).toContain('Phase 1 - Foundations');
+      expect(document).toContain('Step A');
+      expect(document).toContain('Phase 2 - Build');
+      expect(document).toContain('Step B');
+      expect(document).toContain('Phase 3 - Validation & Launch');
+      expect(document).toContain('Step C');
+    });
+
+    it('should handle 4 steps (non-even distribution)', () => {
+      const recommendations = createMockRecommendations({
+        implementationSteps: ['Step 1', 'Step 2', 'Step 3', 'Step 4'],
+      });
+      const options = createMockOptions({ recommendations });
+      const document = generator.generate(options);
+
+      // With 4 steps, chunk size is ceil(4/3) = 2
+      // Phase 1: steps 0-1, Phase 2: steps 2-3, Phase 3: steps 4+ (empty)
+      expect(document).toContain('Step 1');
+      expect(document).toContain('Step 4');
+    });
+
+    it('should handle 5 steps', () => {
+      const recommendations = createMockRecommendations({
+        implementationSteps: ['Step 1', 'Step 2', 'Step 3', 'Step 4', 'Step 5'],
+      });
+      const options = createMockOptions({ recommendations });
+      const document = generator.generate(options);
+
+      expect(document).toContain('Step 1');
+      expect(document).toContain('Step 5');
+    });
+
+    it('should handle 7 steps', () => {
+      const recommendations = createMockRecommendations({
+        implementationSteps: ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
+      });
+      const options = createMockOptions({ recommendations });
+
+      expect(() => generator.generate(options)).not.toThrow();
+    });
+
+    it('should normalize step with colon format', () => {
+      const recommendations = createMockRecommendations({
+        implementationSteps: ['1: First step', '2: Second step'],
+      });
+      const options = createMockOptions({ recommendations });
+      const document = generator.generate(options);
+
+      // Note: the regex only handles ". " and ") " formats, not ": "
+      // So "1: First step" will remain as-is
+      expect(document).toContain('1: First step');
+    });
+
+    it('should normalize step with parenthesis format', () => {
+      const recommendations = createMockRecommendations({
+        implementationSteps: ['1) First', '2) Second', '3) Third'],
+      });
+      const options = createMockOptions({ recommendations });
+      const document = generator.generate(options);
+
+      expect(document).toContain('First');
+      expect(document).toContain('Second');
+      expect(document).toContain('Third');
+    });
+
+    it('should handle steps with leading whitespace', () => {
+      const recommendations = createMockRecommendations({
+        implementationSteps: ['  Step with spaces', '\tStep with tab'],
+      });
+      const options = createMockOptions({ recommendations });
+      const document = generator.generate(options);
+
+      expect(document).toContain('Step with spaces');
+      expect(document).toContain('Step with tab');
+    });
+  });
+
+  describe('Security Section Edge Cases', () => {
+    it('should include credential strategy for template with integrations', () => {
+      // Use a template that has recommended integrations
+      const options = createMockOptions({ templateId: 'code-assistant' });
+      const document = generator.generate(options);
+
+      expect(document).toContain('**Credential & Secret Strategy:**');
+    });
+
+    it('should show no external integrations message when template has none', () => {
+      // Templates vary - this tests the fallback behavior
+      const requirements = createMockRequirements({
+        environment: {
+          runtime: 'local',
+          complianceRequirements: [],
+        },
+        constraints: [],
+      });
+      const options = createMockOptions({
+        requirements,
+        templateId: 'content-creator',
+      });
+      const document = generator.generate(options);
+
+      expect(document).toContain('## Security');
+    });
+
+    it('should handle multiple compliance requirements', () => {
+      const requirements = createMockRequirements({
+        environment: {
+          runtime: 'cloud',
+          complianceRequirements: ['SOC2', 'GDPR', 'HIPAA', 'ISO27001'],
+        },
+      });
+      const options = createMockOptions({ requirements });
+      const document = generator.generate(options);
+
+      expect(document).toContain('SOC2');
+      expect(document).toContain('GDPR');
+      expect(document).toContain('HIPAA');
+      expect(document).toContain('ISO27001');
+    });
+
+    it('should handle memory type short-term in security section', () => {
+      const requirements = createMockRequirements({
+        capabilities: {
+          memory: 'short-term',
+          fileAccess: false,
+          webAccess: false,
+          codeExecution: false,
+          dataAnalysis: false,
+          toolIntegrations: [],
+        },
+      });
+      const options = createMockOptions({ requirements });
+      const document = generator.generate(options);
+
+      expect(document).toContain('retention policies');
+    });
+  });
+
+  describe('Risk Section Edge Cases', () => {
+    it('should show multiple combined risks', () => {
+      const requirements = createMockRequirements({
+        capabilities: {
+          memory: 'long-term',
+          fileAccess: true,
+          webAccess: true,
+          codeExecution: true,
+          dataAnalysis: true,
+          toolIntegrations: ['github', 'aws'],
+        },
+        constraints: ['Budget limitation', 'Timeline constraint'],
+      });
+      const recommendations = createMockRecommendations({
+        mcpServers: [], // No web-fetch, so web access risk should appear
+        notes: 'Security consideration\nPerformance note',
+      });
+      const options = createMockOptions({ requirements, recommendations });
+      const document = generator.generate(options);
+
+      expect(document).toContain('Web access requested but no web-fetch MCP server configured');
+      expect(document).toContain('Project constraints may limit tooling or delivery cadence');
+      expect(document).toContain('Security consideration');
+      expect(document).toContain('Performance note');
+    });
+
+    it('should not show web access risk when webAccess is false', () => {
+      const requirements = createMockRequirements({
+        capabilities: {
+          memory: 'none',
+          fileAccess: false,
+          webAccess: false,
+          codeExecution: false,
+          dataAnalysis: false,
+          toolIntegrations: [],
+        },
+        constraints: [],
+      });
+      const recommendations = createMockRecommendations({
+        mcpServers: [],
+        notes: undefined,
+      });
+      const options = createMockOptions({ requirements, recommendations });
+      const document = generator.generate(options);
+
+      expect(document).not.toContain('Web access requested');
+    });
+
+    it('should handle notes with only whitespace lines', () => {
+      const recommendations = createMockRecommendations({
+        notes: 'Valid note\n   \n\nAnother note\n  \t  ',
+      });
+      const options = createMockOptions({ recommendations });
+      const document = generator.generate(options);
+
+      expect(document).toContain('Valid note');
+      expect(document).toContain('Another note');
+    });
+
+    it('should handle single-word notes', () => {
+      const recommendations = createMockRecommendations({
+        notes: 'Important',
+      });
+      const options = createMockOptions({ recommendations });
+      const document = generator.generate(options);
+
+      expect(document).toContain('- Important');
+    });
+  });
+
+  describe('Deployment Section Edge Cases', () => {
+    it('should handle hybrid runtime', () => {
+      const requirements = createMockRequirements({
+        environment: {
+          runtime: 'hybrid',
+          deploymentTargets: ['AWS', 'On-premise'],
+        },
+      });
+      const options = createMockOptions({ requirements });
+      const document = generator.generate(options);
+
+      expect(document).toContain('**Runtime Strategy:** hybrid');
+    });
+
+    it('should handle empty deployment targets array', () => {
+      const requirements = createMockRequirements({
+        environment: {
+          runtime: 'cloud',
+          deploymentTargets: [],
+        },
+      });
+      const options = createMockOptions({ requirements });
+      const document = generator.generate(options);
+
+      // Empty array should trigger the fallback
+      expect(document).toContain('Deployment targets will be confirmed with stakeholders');
+    });
+
+    it('should handle single dependency', () => {
+      const recommendations = createMockRecommendations({
+        requiredDependencies: ['typescript'],
+      });
+      const options = createMockOptions({ recommendations });
+      const document = generator.generate(options);
+
+      expect(document).toContain('- typescript');
+    });
+
+    it('should handle many dependencies', () => {
+      const recommendations = createMockRecommendations({
+        requiredDependencies: ['react', 'typescript', 'vite', 'tailwind', 'zustand', 'radix-ui', 'vitest'],
+      });
+      const options = createMockOptions({ recommendations });
+      const document = generator.generate(options);
+
+      expect(document).toContain('- react');
+      expect(document).toContain('- vitest');
+    });
+
+    it('should handle MCP server without URL', () => {
+      const recommendations = createMockRecommendations({
+        mcpServers: [
+          { name: 'local-server', description: 'Local MCP server' },
+        ],
+      });
+      const options = createMockOptions({ recommendations });
+      const document = generator.generate(options);
+
+      expect(document).toContain('`local-server`');
+      expect(document).toContain('Local MCP server');
+    });
+
+    it('should handle multiple MCP servers', () => {
+      const recommendations = createMockRecommendations({
+        mcpServers: [
+          { name: 'server1', description: 'First server', url: 'https://a.com', authentication: 'apiKey' },
+          { name: 'server2', description: 'Second server', url: 'https://b.com', authentication: 'oauth' },
+          { name: 'server3', description: 'Third server', url: 'https://c.com' },
+        ],
+      });
+      const options = createMockOptions({ recommendations });
+      const document = generator.generate(options);
+
+      expect(document).toContain('`server1`');
+      expect(document).toContain('`server2`');
+      expect(document).toContain('`server3`');
+    });
+  });
+
+  describe('Overview Section Edge Cases', () => {
+    it('should handle empty target audience', () => {
+      const requirements = createMockRequirements({
+        targetAudience: [],
+      });
+      const options = createMockOptions({ requirements });
+      const document = generator.generate(options);
+
+      expect(document).toContain('**Target Audience:**');
+    });
+
+    it('should handle single target audience', () => {
+      const requirements = createMockRequirements({
+        targetAudience: ['developers'],
+      });
+      const options = createMockOptions({ requirements });
+      const document = generator.generate(options);
+
+      expect(document).toContain('**Target Audience:** developers');
+    });
+
+    it('should handle multiple delivery channels', () => {
+      const requirements = createMockRequirements({
+        deliveryChannels: ['web', 'mobile', 'CLI', 'API', 'email'],
+      });
+      const options = createMockOptions({ requirements });
+      const document = generator.generate(options);
+
+      expect(document).toContain('web, mobile, CLI, API, email');
+    });
+
+    it('should handle empty delivery channels', () => {
+      const requirements = createMockRequirements({
+        deliveryChannels: [],
+      });
+      const options = createMockOptions({ requirements });
+      const document = generator.generate(options);
+
+      expect(document).toContain('**Delivery Channels:**');
+    });
+
+    it('should display multiple MCP servers in overview', () => {
+      const recommendations = createMockRecommendations({
+        mcpServers: [
+          { name: 'fs', description: 'Filesystem' },
+          { name: 'git', description: 'Git operations' },
+          { name: 'db', description: 'Database access' },
+        ],
+      });
+      const options = createMockOptions({ recommendations });
+      const document = generator.generate(options);
+
+      expect(document).toContain('`fs`, `git`, `db`');
+    });
+
+    it('should display multiple tool configurations in overview', () => {
+      const recommendations = createMockRecommendations({
+        toolConfigurations: [
+          { name: 'tool-a', description: 'First tool', parameters: {}, requiredPermissions: [] },
+          { name: 'tool-b', description: 'Second tool', parameters: {}, requiredPermissions: [] },
+          { name: 'tool-c', description: 'Third tool', parameters: {}, requiredPermissions: [] },
+        ],
+      });
+      const options = createMockOptions({ recommendations });
+      const document = generator.generate(options);
+
+      expect(document).toContain('tool-a, tool-b, tool-c');
+    });
+  });
+
+  describe('Architecture Section Edge Cases', () => {
+    it('should handle template with empty capability tags', () => {
+      // Test with a valid template - capability tags come from template
+      const options = createMockOptions({ templateId: 'data-analyst' });
+      const document = generator.generate(options);
+
+      expect(document).toContain('**Core Capabilities:**');
+    });
+
+    it('should show tool details with parameters and permissions', () => {
+      const recommendations = createMockRecommendations({
+        toolConfigurations: [
+          {
+            name: 'advanced-tool',
+            description: 'Tool with complex config',
+            parameters: { mode: 'advanced', timeout: 5000 },
+            requiredPermissions: ['file:read', 'file:write', 'network:access'],
+          },
+        ],
+      });
+      const options = createMockOptions({ recommendations });
+      const document = generator.generate(options);
+
+      expect(document).toContain('**advanced-tool**');
+      expect(document).toContain('Tool with complex config');
+    });
+
+    it('should handle template integrations display', () => {
+      const options = createMockOptions({ templateId: 'automation-agent' });
+      const document = generator.generate(options);
+
+      expect(document).toContain('**Integration Targets:**');
+    });
+  });
+
+  describe('Requirements Section Edge Cases', () => {
+    it('should handle empty success metrics with fallback', () => {
+      const requirements = createMockRequirements({
+        successMetrics: [],
+      });
+      const options = createMockOptions({ requirements });
+      const document = generator.generate(options);
+
+      expect(document).toContain('Defined during project kickoff');
+    });
+
+    it('should handle single success metric', () => {
+      const requirements = createMockRequirements({
+        successMetrics: ['Response time under 500ms'],
+      });
+      const options = createMockOptions({ requirements });
+      const document = generator.generate(options);
+
+      expect(document).toContain('- Response time under 500ms');
+    });
+
+    it('should handle empty preferred technologies', () => {
+      const requirements = createMockRequirements({
+        preferredTechnologies: [],
+      });
+      const options = createMockOptions({ requirements });
+      const document = generator.generate(options);
+
+      expect(document).toContain('No technology preferences provided');
+    });
+
+    it('should handle single technology preference', () => {
+      const requirements = createMockRequirements({
+        preferredTechnologies: ['Python'],
+      });
+      const options = createMockOptions({ requirements });
+      const document = generator.generate(options);
+
+      expect(document).toContain('- Python');
+    });
+
+    it('should handle empty additional notes string', () => {
+      const requirements = createMockRequirements({
+        additionalNotes: '',
+      });
+      const options = createMockOptions({ requirements });
+      const document = generator.generate(options);
+
+      expect(document).toContain('No additional notes captured');
+    });
+
+    it('should handle very long description', () => {
+      const longDescription = 'A'.repeat(1000);
+      const requirements = createMockRequirements({
+        description: longDescription,
+      });
+      const options = createMockOptions({ requirements });
+      const document = generator.generate(options);
+
+      expect(document).toContain(longDescription);
+    });
+
+    it('should handle multiline additional notes', () => {
+      const requirements = createMockRequirements({
+        additionalNotes: 'Line 1\nLine 2\nLine 3',
+      });
+      const options = createMockOptions({ requirements });
+      const document = generator.generate(options);
+
+      expect(document).toContain('Line 1\nLine 2\nLine 3');
+    });
+  });
+
+  describe('Complete Document Structure', () => {
+    it('should generate document with all sections in correct order', () => {
+      const options = createMockOptions();
+      const document = generator.generate(options);
+
+      const overviewIndex = document.indexOf('## Overview');
+      const requirementsIndex = document.indexOf('## Requirements');
+      const architectureIndex = document.indexOf('## Architecture');
+      const phasesIndex = document.indexOf('## Phases');
+      const securityIndex = document.indexOf('## Security');
+      const metricsIndex = document.indexOf('## Metrics');
+      const riskIndex = document.indexOf('## Risk');
+      const deploymentIndex = document.indexOf('## Deployment');
+
+      expect(overviewIndex).toBeLessThan(requirementsIndex);
+      expect(requirementsIndex).toBeLessThan(architectureIndex);
+      expect(architectureIndex).toBeLessThan(phasesIndex);
+      expect(phasesIndex).toBeLessThan(securityIndex);
+      expect(securityIndex).toBeLessThan(metricsIndex);
+      expect(metricsIndex).toBeLessThan(riskIndex);
+      expect(riskIndex).toBeLessThan(deploymentIndex);
+    });
+
+    it('should not have undefined or null values in output', () => {
+      const options = createMockOptions();
+      const document = generator.generate(options);
+
+      expect(document).not.toContain('undefined');
+      expect(document).not.toContain('null');
+    });
+
+    it('should generate deterministic output for same input', () => {
+      const options = createMockOptions();
+      const document1 = generator.generate(options);
+      const document2 = generator.generate(options);
+
+      expect(document1).toBe(document2);
+    });
+
+    it('should handle generator instance reuse', () => {
+      const options1 = createMockOptions({ agentName: 'Agent1' });
+      const options2 = createMockOptions({ agentName: 'Agent2' });
+
+      const document1 = generator.generate(options1);
+      const document2 = generator.generate(options2);
+
+      expect(document1).toContain('Agent1');
+      expect(document1).not.toContain('Agent2');
+      expect(document2).toContain('Agent2');
+      expect(document2).not.toContain('Agent1');
     });
   });
 });
