@@ -1,0 +1,10 @@
+# TypeScript build artifacts in package root
+/vite.config.js
+/vite.config.d.ts
+/tailwind.config.js
+/tailwind.config.d.ts
+/postcss.config.js
+/postcss.config.d.ts
+
+# Dev server
+dev-dist/
