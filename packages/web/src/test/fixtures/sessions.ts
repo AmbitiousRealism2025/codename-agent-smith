@@ -7,6 +7,7 @@ import type { InterviewStage, AgentRequirements, AgentRecommendations } from '@/
 export function createSessionFixture(
   overrides: Partial<StoredSession> = {}
 ): StoredSession {
+  // Use fixed timestamp for deterministic test behavior
   const now = new Date('2024-01-01T00:00:00Z');
   return {
     id: 'test-session-001',
