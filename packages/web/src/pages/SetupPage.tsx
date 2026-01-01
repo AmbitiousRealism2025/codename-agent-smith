@@ -20,8 +20,14 @@ export function SetupPage() {
       animate={{ opacity: 1 }}
       className="min-h-screen bg-background flex items-center justify-center"
     >
+      <a
+        href="#setup-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+      >
+        Skip to setup form
+      </a>
       <ThemeToggle />
-      <div className="container mx-auto px-4 py-8 max-w-3xl">
+      <main id="setup-content" className="container mx-auto px-4 py-8 max-w-3xl" tabIndex={-1}>
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2">Agent Advisor</h1>
           <p className="text-muted-foreground">
@@ -69,7 +75,7 @@ export function SetupPage() {
             </p>
           </div>
         </motion.div>
-      </div>
+      </main>
     </motion.div>
   );
 }

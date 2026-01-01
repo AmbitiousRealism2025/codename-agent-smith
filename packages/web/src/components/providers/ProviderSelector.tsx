@@ -102,36 +102,48 @@ export function ProviderSelector({ onComplete }: ProviderSelectorProps) {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {providers.map((provider) => (
-          <Card
-            key={provider.id}
-            className={`cursor-pointer transition-all hover:shadow-md ${
-              selectedProvider === provider.id
-                ? 'ring-2 ring-primary'
-                : 'hover:border-muted-foreground/50'
-            }`}
-            onClick={() => handleProviderSelect(provider.id)}
-          >
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">{provider.name}</CardTitle>
-                {selectedProvider === provider.id && (
-                  <Check className="h-5 w-5 text-primary" />
-                )}
-              </div>
-              <CardDescription className="text-sm">
-                {provider.description}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xs text-muted-foreground">
-                Auth: {getAuthLabel(provider.authentication)}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <fieldset>
+        <legend className="sr-only">Select AI Provider</legend>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4" role="radiogroup" aria-label="AI Provider Selection">
+          {providers.map((provider) => (
+            <Card
+              key={provider.id}
+              role="radio"
+              aria-checked={selectedProvider === provider.id}
+              tabIndex={0}
+              className={`cursor-pointer transition-all hover:shadow-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+                selectedProvider === provider.id
+                  ? 'ring-2 ring-primary'
+                  : 'hover:border-muted-foreground/50'
+              }`}
+              onClick={() => handleProviderSelect(provider.id)}
+              onKeyDown={(e: React.KeyboardEvent) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleProviderSelect(provider.id);
+                }
+              }}
+            >
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">{provider.name}</CardTitle>
+                  {selectedProvider === provider.id && (
+                    <Check className="h-5 w-5 text-primary" aria-hidden="true" />
+                  )}
+                </div>
+                <CardDescription className="text-sm">
+                  {provider.description}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-xs text-muted-foreground">
+                  Auth: {getAuthLabel(provider.authentication)}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </fieldset>
 
       <div className="space-y-4 pt-4 border-t">
         <div className="space-y-2">
@@ -159,9 +171,9 @@ export function ProviderSelector({ onComplete }: ProviderSelectorProps) {
                 size="icon"
                 onClick={handleClearKey}
                 disabled={isLoading}
-                title="Clear saved key"
+                aria-label="Clear saved API key"
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4" aria-hidden="true" />
               </Button>
             )}
           </div>

@@ -31,12 +31,19 @@ export function QuestionCard({ question, value, onChange, onSubmit, onSkip }: Qu
     switch (question.type) {
       case 'text':
         return (
-          <Textarea
-            value={(value as string) ?? ''}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={question.hint}
-            className="min-h-[120px] resize-none"
-          />
+          <div>
+            <label htmlFor={`question-${question.id}`} className="sr-only">
+              {question.text}
+            </label>
+            <Textarea
+              id={`question-${question.id}`}
+              value={(value as string) ?? ''}
+              onChange={(e) => onChange(e.target.value)}
+              placeholder={question.hint}
+              className="min-h-[120px] resize-none"
+              aria-describedby={question.hint ? `hint-${question.id}` : undefined}
+            />
+          </div>
         );
 
       case 'choice':
@@ -121,9 +128,9 @@ export function QuestionCard({ question, value, onChange, onSubmit, onSkip }: Qu
       >
         <Card className="border-border/50">
           <CardContent className="pt-6">
-            <h2 className="text-2xl font-semibold mb-2">{question.text}</h2>
+            <h2 className="text-2xl font-semibold mb-2" id={`question-heading-${question.id}`}>{question.text}</h2>
             {question.hint && (
-              <p className="text-muted-foreground mb-6">{question.hint}</p>
+              <p className="text-muted-foreground mb-6" id={`hint-${question.id}`}>{question.hint}</p>
             )}
 
             <div className="mb-8">{renderInput()}</div>

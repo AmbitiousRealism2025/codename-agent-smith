@@ -88,8 +88,14 @@ export function ResultsPage() {
       animate={{ opacity: 1 }}
       className="min-h-screen bg-background"
     >
+      <a
+        href="#results-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+      >
+        Skip to results
+      </a>
       <ThemeToggle />
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <main id="results-content" className="container mx-auto px-4 py-8 max-w-4xl" tabIndex={-1}>
         <Button
           variant="ghost"
           size="sm"
@@ -184,18 +190,20 @@ export function ResultsPage() {
           <CardHeader>
             <button
               onClick={() => setPromptExpanded(!promptExpanded)}
-              className="flex items-center justify-between w-full text-left"
+              className="flex items-center justify-between w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg"
+              aria-expanded={promptExpanded}
+              aria-controls="system-prompt-content"
             >
               <CardTitle>System Prompt Preview</CardTitle>
               {promptExpanded ? (
-                <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                <ChevronUp className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
               ) : (
-                <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                <ChevronDown className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
               )}
             </button>
           </CardHeader>
           {promptExpanded && (
-            <CardContent>
+            <CardContent id="system-prompt-content">
               <pre className="text-xs bg-muted/50 p-4 rounded-lg overflow-x-auto whitespace-pre-wrap max-h-96 overflow-y-auto">
                 {recommendations.systemPrompt}
               </pre>
@@ -230,7 +238,7 @@ export function ResultsPage() {
             Start Over
           </Button>
         </div>
-      </div>
+      </main>
     </motion.div>
   );
 }
