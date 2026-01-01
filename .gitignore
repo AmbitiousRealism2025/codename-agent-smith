@@ -80,3 +80,12 @@ Desktop.ini
 *.bak
 *.backup
 *~
+
+# Auto Claude data directory
+.auto-claude/
+
+# Claude Code settings (machine-specific)
+.claude_settings.json
+
+# Git worktrees directory
+.worktrees/
