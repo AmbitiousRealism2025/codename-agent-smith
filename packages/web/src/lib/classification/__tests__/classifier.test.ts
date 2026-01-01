@@ -1117,6 +1117,367 @@ describe("AgentClassifier", () => {
     });
   });
 
+  describe("Edge Cases - Empty Requirements", () => {
+    it("should handle completely empty name", () => {
+      const requirements = createBaseRequirements({
+        name: "",
+      });
+
+      const recommendations = classifier.classify(requirements);
+
+      expect(recommendations).toBeDefined();
+      expect(recommendations.agentType).toBeDefined();
+    });
+
+    it("should handle empty description", () => {
+      const requirements = createBaseRequirements({
+        description: "",
+      });
+
+      const template = ALL_TEMPLATES[0]!;
+      const prompt = classifier.customizeSystemPrompt(template, requirements);
+
+      // Should still create a valid prompt
+      expect(prompt).toBeDefined();
+      expect(typeof prompt).toBe("string");
+    });
+
+    it("should handle empty delivery channels array", () => {
+      const requirements = createBaseRequirements({
+        deliveryChannels: [],
+      });
+
+      const template = ALL_TEMPLATES[0]!;
+      const complexity = classifier.assessComplexity(requirements, template);
+
+      expect(["low", "medium", "high"]).toContain(complexity);
+    });
+
+    it("should handle empty tool integrations array", () => {
+      const requirements = createBaseRequirements({
+        capabilities: {
+          memory: "none",
+          fileAccess: false,
+          webAccess: false,
+          codeExecution: false,
+          dataAnalysis: false,
+          toolIntegrations: [],
+        },
+      });
+
+      const template = ALL_TEMPLATES[0]!;
+      const steps = classifier.generateImplementationSteps(requirements, template, "low");
+
+      expect(Array.isArray(steps)).toBe(true);
+      // Should not include "Integrate with external services" step when no tool integrations
+      expect(steps.some((step) => step.toLowerCase().includes("integrate with external"))).toBe(false);
+    });
+
+    it("should handle all capabilities disabled", () => {
+      const requirements = createBaseRequirements({
+        capabilities: {
+          memory: "none",
+          fileAccess: false,
+          webAccess: false,
+          codeExecution: false,
+          dataAnalysis: false,
+          toolIntegrations: [],
+        },
+      });
+
+      const scores = classifier.scoreAllTemplates(requirements);
+
+      expect(scores).toHaveLength(ALL_TEMPLATES.length);
+      // Should still produce valid scores even with minimal capabilities
+      scores.forEach((score) => {
+        expect(score.score).toBeGreaterThanOrEqual(0);
+        expect(score.score).toBeLessThanOrEqual(100);
+      });
+    });
+
+    it("should handle whitespace-only primary outcome", () => {
+      const requirements = createBaseRequirements({
+        primaryOutcome: "   \t\n  ",
+      });
+
+      const scores = classifier.scoreAllTemplates(requirements);
+
+      expect(scores).toHaveLength(ALL_TEMPLATES.length);
+      scores.forEach((score) => {
+        expect(typeof score.score).toBe("number");
+        expect(isNaN(score.score)).toBe(false);
+      });
+    });
+
+    it("should handle empty constraints array", () => {
+      const requirements = createBaseRequirements({
+        constraints: [],
+      });
+
+      const template = ALL_TEMPLATES[0]!;
+      const prompt = classifier.customizeSystemPrompt(template, requirements);
+
+      expect(prompt).not.toContain("Constraints");
+    });
+  });
+
+  describe("Edge Cases - Missing Templates", () => {
+    it("should throw error when classifying with no templates", () => {
+      const emptyClassifier = new AgentClassifier([]);
+      const requirements = createBaseRequirements();
+
+      expect(() => emptyClassifier.classify(requirements)).toThrowError(
+        "No templates available for classification"
+      );
+    });
+
+    it("should return empty array when scoring with no templates", () => {
+      const emptyClassifier = new AgentClassifier([]);
+      const requirements = createBaseRequirements();
+
+      const scores = emptyClassifier.scoreAllTemplates(requirements);
+
+      expect(scores).toHaveLength(0);
+    });
+
+    it("should handle single template gracefully", () => {
+      const singleTemplate: AgentTemplate = {
+        id: "single-template",
+        name: "Single Template",
+        description: "A single test template",
+        capabilityTags: ["test-capability"],
+        idealFor: ["testing"],
+        systemPrompt: "You are a test agent.",
+        defaultTools: [],
+        requiredDependencies: [],
+        recommendedIntegrations: [],
+      };
+
+      const singleClassifier = new AgentClassifier([singleTemplate]);
+      const requirements = createBaseRequirements();
+
+      const scores = singleClassifier.scoreAllTemplates(requirements);
+      expect(scores).toHaveLength(1);
+      expect(scores[0]!.templateId).toBe("single-template");
+
+      const recommendations = singleClassifier.classify(requirements);
+      expect(recommendations.agentType).toBe("single-template");
+    });
+
+    it("should handle template with empty capabilityTags", () => {
+      const emptyCapTemplate: AgentTemplate = {
+        id: "empty-caps",
+        name: "Empty Capabilities Template",
+        description: "Template with no capability tags",
+        capabilityTags: [],
+        idealFor: [],
+        systemPrompt: "You are an agent.",
+        defaultTools: [],
+        requiredDependencies: [],
+        recommendedIntegrations: [],
+      };
+
+      const testClassifier = new AgentClassifier([emptyCapTemplate]);
+      const requirements = createBaseRequirements({
+        primaryOutcome: "Test task",
+      });
+
+      const scores = testClassifier.scoreAllTemplates(requirements);
+      expect(scores).toHaveLength(1);
+      expect(scores[0]!.matchedCapabilities).toHaveLength(0);
+    });
+
+    it("should handle template with empty idealFor array", () => {
+      const noIdealForTemplate: AgentTemplate = {
+        id: "no-ideal-for",
+        name: "No IdealFor Template",
+        description: "Template with empty idealFor",
+        capabilityTags: ["data-processing"],
+        idealFor: [],
+        systemPrompt: "You are an agent.",
+        defaultTools: [],
+        requiredDependencies: [],
+        recommendedIntegrations: [],
+      };
+
+      const testClassifier = new AgentClassifier([noIdealForTemplate]);
+      const requirements = createBaseRequirements({
+        primaryOutcome: "Data processing task",
+      });
+
+      const scores = testClassifier.scoreAllTemplates(requirements);
+      expect(scores).toHaveLength(1);
+      // Should still match based on capability tags
+      expect(scores[0]!.score).toBeGreaterThanOrEqual(0);
+    });
+
+    it("should handle template with empty defaultTools", () => {
+      const noToolsTemplate: AgentTemplate = {
+        id: "no-tools",
+        name: "No Tools Template",
+        description: "Template with no default tools",
+        capabilityTags: ["general"],
+        idealFor: ["general tasks"],
+        systemPrompt: "You are a general purpose agent.",
+        defaultTools: [],
+        requiredDependencies: [],
+        recommendedIntegrations: [],
+      };
+
+      const testClassifier = new AgentClassifier([noToolsTemplate]);
+      const requirements = createBaseRequirements();
+
+      const recommendations = testClassifier.classify(requirements);
+      expect(recommendations.toolConfigurations).toHaveLength(0);
+    });
+  });
+
+  describe("Edge Cases - Incomplete Data", () => {
+    it("should handle requirements with undefined optional environment", () => {
+      const requirements = createBaseRequirements();
+      // Ensure environment is undefined
+      delete (requirements as Partial<AgentRequirements>).environment;
+
+      const template = ALL_TEMPLATES[0]!;
+      const complexity = classifier.assessComplexity(requirements, template);
+
+      expect(["low", "medium", "high"]).toContain(complexity);
+    });
+
+    it("should handle requirements with empty environment", () => {
+      const requirements = createBaseRequirements({
+        environment: {},
+      });
+
+      const template = ALL_TEMPLATES[0]!;
+      const complexity = classifier.assessComplexity(requirements, template);
+
+      expect(["low", "medium", "high"]).toContain(complexity);
+    });
+
+    it("should handle requirements with partial environment", () => {
+      const requirements = createBaseRequirements({
+        environment: {
+          runtime: "local",
+          // complianceRequirements is undefined
+        },
+      });
+
+      const template = ALL_TEMPLATES[0]!;
+      const complexity = classifier.assessComplexity(requirements, template);
+
+      expect(["low", "medium", "high"]).toContain(complexity);
+    });
+
+    it("should handle requirements with only mandatory fields", () => {
+      const minimalRequirements: AgentRequirements = {
+        name: "Minimal Agent",
+        description: "A minimal agent",
+        primaryOutcome: "Test",
+        targetAudience: [],
+        interactionStyle: "task-focused",
+        deliveryChannels: [],
+        successMetrics: [],
+        capabilities: {
+          memory: "none",
+          fileAccess: false,
+          webAccess: false,
+          codeExecution: false,
+          dataAnalysis: false,
+          toolIntegrations: [],
+        },
+      };
+
+      const scores = classifier.scoreAllTemplates(minimalRequirements);
+
+      expect(scores).toHaveLength(ALL_TEMPLATES.length);
+      scores.forEach((score) => {
+        expect(score.score).toBeGreaterThanOrEqual(0);
+        expect(score.score).toBeLessThanOrEqual(100);
+      });
+    });
+
+    it("should handle scoring when all templates have zero score", () => {
+      const noMatchTemplate: AgentTemplate = {
+        id: "no-match",
+        name: "No Match Template",
+        description: "Template that matches nothing",
+        capabilityTags: ["nonexistent-xyz-123"],
+        idealFor: ["impossible task xyz 987"],
+        systemPrompt: "You are an agent.",
+        defaultTools: [],
+        requiredDependencies: [],
+        recommendedIntegrations: [],
+      };
+
+      const testClassifier = new AgentClassifier([noMatchTemplate]);
+      const requirements = createBaseRequirements({
+        primaryOutcome: "Completely unrelated task",
+      });
+
+      const scores = testClassifier.scoreAllTemplates(requirements);
+      expect(scores[0]!.score).toBe(0);
+      expect(scores[0]!.matchedCapabilities).toHaveLength(0);
+    });
+
+    it("should generate valid MCP servers with minimal requirements", () => {
+      const requirements = createBaseRequirements({
+        capabilities: {
+          memory: "none",
+          fileAccess: false,
+          webAccess: false,
+          codeExecution: false,
+          dataAnalysis: false,
+          toolIntegrations: [],
+        },
+      });
+
+      const template = ALL_TEMPLATES[0]!;
+      const servers = classifier.generateMCPServers(requirements, template);
+
+      expect(Array.isArray(servers)).toBe(true);
+      expect(servers).toHaveLength(0);
+    });
+
+    it("should customize system prompt with minimal requirements", () => {
+      const minimalRequirements: AgentRequirements = {
+        name: "Min",
+        description: "",
+        primaryOutcome: "",
+        targetAudience: [],
+        interactionStyle: "task-focused",
+        deliveryChannels: [],
+        successMetrics: [],
+        capabilities: {
+          memory: "none",
+          fileAccess: false,
+          webAccess: false,
+          codeExecution: false,
+          dataAnalysis: false,
+          toolIntegrations: [],
+        },
+      };
+
+      const template = ALL_TEMPLATES[0]!;
+      const prompt = classifier.customizeSystemPrompt(template, minimalRequirements);
+
+      expect(prompt).toBeDefined();
+      expect(typeof prompt).toBe("string");
+      expect(prompt.length).toBeGreaterThan(0);
+      expect(prompt).toContain("Min"); // Name should be included
+    });
+
+    it("should handle undefined additionalNotes gracefully", () => {
+      const requirements = createBaseRequirements();
+      // Ensure additionalNotes is undefined
+      delete (requirements as Partial<AgentRequirements>).additionalNotes;
+
+      const recommendations = classifier.classify(requirements);
+
+      expect(recommendations.notes).not.toContain("Additional context: undefined");
+    });
+  });
+
   describe("Template Capability Tags", () => {
     it("should have data-analyst template with expected capability tags", () => {
       const dataAnalystTemplate = ALL_TEMPLATES.find((t) => t.id === "data-analyst");
