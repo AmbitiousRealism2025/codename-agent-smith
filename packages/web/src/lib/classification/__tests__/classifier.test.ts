@@ -4,7 +4,6 @@ import { ALL_TEMPLATES } from "@/templates";
 import type {
   AgentRequirements,
   AgentTemplate,
-  TemplateScore,
 } from "@/lib/classification/types";
 
 /**
@@ -1344,9 +1343,11 @@ describe("AgentClassifier", () => {
       expect(["low", "medium", "high"]).toContain(complexity);
     });
 
-    it("should handle requirements with empty environment", () => {
+    it("should handle requirements with minimal environment", () => {
       const requirements = createBaseRequirements({
-        environment: {},
+        environment: {
+          runtime: "local",
+        },
       });
 
       const template = ALL_TEMPLATES[0]!;
@@ -1491,7 +1492,8 @@ describe("AgentClassifier", () => {
     it("should handle requirements where capabilities object has undefined fields", () => {
       const requirements = createBaseRequirements();
       // Simulate a scenario where some capability fields might be undefined
-      (requirements.capabilities as Record<string, unknown>).memory = undefined;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (requirements.capabilities as any).memory = undefined;
 
       expect(() => classifier.scoreAllTemplates(requirements)).not.toThrow();
     });

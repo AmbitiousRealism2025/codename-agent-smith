@@ -591,7 +591,7 @@ describe("Interview Questions", () => {
       });
 
       it("should be the last question", () => {
-        const lastQuestion = INTERVIEW_QUESTIONS[INTERVIEW_QUESTIONS.length - 1];
+        const lastQuestion = INTERVIEW_QUESTIONS[INTERVIEW_QUESTIONS.length - 1]!;
         expect(lastQuestion.id).toBe("q15_additional_notes");
       });
     });
