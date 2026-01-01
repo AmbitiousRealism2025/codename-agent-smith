@@ -10,9 +10,9 @@
     --background: 10 57% 88%;            /* Warm blush */
     --foreground: 234 16% 35%;          /* Text #4c4f69 */
     --primary: 22 99% 52%;              /* Peach #fe640b */
-    --primary-foreground: 0 0% 100%;
+    --primary-foreground: 240 23% 9%;   /* Mocha Crust #11111b - 6.29:1 contrast */
     --accent: 22 99% 52%;               /* Peach #fe640b */
-    --accent-foreground: 0 0% 100%;
+    --accent-foreground: 240 23% 9%;    /* Mocha Crust #11111b */
     --muted: 223 16% 83%;               /* Surface 0 #ccd0da */
     --muted-foreground: 233 10% 47%;    /* Subtext 0 #6c6f85 */
     --card: 220 22% 92%;                /* Mantle #e6e9ef */
