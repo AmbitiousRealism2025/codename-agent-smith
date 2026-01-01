@@ -52,7 +52,7 @@ A Progressive Web App that guides developers through an interactive interview to
 | Styling | Tailwind CSS + shadcn/ui |
 | Theme | Catppuccin (custom warm blush light / Frappé dark) |
 | State | Zustand with persist middleware |
-| Storage | Dexie (IndexedDB wrapper) |
+| Storage | Dexie (IndexedDB) — Convex planned for Stage 2 |
 | Runtime | Bun |
 | A11y | axe-core (dev mode) |
 
@@ -152,12 +152,13 @@ Typography: Satoshi (display) + General Sans (body)
 - [x] Accessibility audit
 - [x] Catppuccin theme
 
-### Future
+### Future (Stage 2+)
 - [ ] Unit tests (Vitest configured)
 - [ ] E2E tests (Playwright)
-- [ ] User authentication
-- [ ] Cloud sync
-- [ ] Additional providers
+- [ ] Convex backend integration
+- [ ] User authentication (Clerk)
+- [ ] Cloud sync (Convex)
+- [ ] Additional providers (OpenAI, GLM)
 - [ ] Multi-language support
 
 ---

@@ -78,7 +78,7 @@ Progressive Web App guiding developers through AI agent configuration. 15-questi
 - **Build:** Vite 6 + vite-plugin-pwa
 - **Styling:** TailwindCSS v3 + shadcn/ui
 - **State:** Zustand with persist middleware
-- **Storage:** IndexedDB via Dexie.js
+- **Storage:** IndexedDB via Dexie.js (Convex backend planned for Stage 2)
 - **A11y:** axe-core (dev mode automated testing)
 
 ### Patterns
@@ -163,7 +163,8 @@ bun run test:e2e         # Playwright E2E
 
 ## NOTES
 
-- **Pure client-side:** No backend server required. All data in IndexedDB.
+- **Pure client-side (MVP):** No backend server required. All data in IndexedDB.
+- **Convex planned:** Stage 2 will add Convex for cloud sync, auth, and session persistence.
 - **Offline capable:** Core interview flow works without network.
 - **PWA installable:** Add to home screen on mobile/desktop.
 - **axe-core in dev:** Console logs a11y violations automatically.
