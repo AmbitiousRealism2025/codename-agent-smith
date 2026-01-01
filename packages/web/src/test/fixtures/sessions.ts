@@ -1,5 +1,5 @@
 import type { StoredSession } from '@/lib/storage/db';
-import type { InterviewStage, AgentRequirements, AgentRecommendations } from '@/types/interview';
+import type { InterviewStage } from '@/types/interview';
 
 /**
  * Factory function to create a minimal session fixture
@@ -192,7 +192,7 @@ export const COMPLETED_SESSION: StoredSession = createSessionFixture({
     },
     constraints: ['Budget under $500/month', 'SOC2 compliance'],
     additionalNotes: 'Integrate with existing CI/CD pipeline',
-  } as Partial<AgentRequirements>,
+  },
   recommendations: {
     agentType: 'automation-agent',
     requiredDependencies: ['@anthropic-ai/claude-agent-sdk', 'docker-client'],
@@ -228,7 +228,7 @@ export const COMPLETED_SESSION: StoredSession = createSessionFixture({
       'Set up alerting',
     ],
     notes: 'Consider rate limiting for production deployments',
-  } as AgentRecommendations,
+  },
 });
 
 /**
