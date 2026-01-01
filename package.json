@@ -1,0 +1,28 @@
+{
+  "name": "agent-advisor-pwa",
+  "version": "1.0.0-alpha",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun run --cwd packages/web dev",
+    "build": "bun run --cwd packages/web build",
+    "preview": "bun run --cwd packages/web preview",
+    "test": "bun run --cwd packages/web test",
+    "test:e2e": "bun run --cwd packages/web test:e2e",
+    "lint": "bun run --cwd packages/web lint",
+    "typecheck": "bun run --cwd packages/web typecheck",
+    "convex:dev": "npx convex dev",
+    "convex:deploy": "npx convex deploy"
+  },
+  "devDependencies": {
+    "convex": "^1.17.0",
+    "typescript": "^5.5.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "bun@1.1.0"
+}

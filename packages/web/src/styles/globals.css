@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light Mode - Warm Neutrals + Electric Accents */
+    --background: 40 20% 98%;           /* Warm off-white */
+    --foreground: 220 20% 10%;          /* Deep charcoal */
+    --primary: 255 85% 55%;             /* Electric violet */
+    --primary-foreground: 0 0% 100%;
+    --accent: 165 80% 40%;              /* Vibrant teal */
+    --accent-foreground: 0 0% 100%;
+    --muted: 40 10% 94%;
+    --muted-foreground: 220 15% 40%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 10%;
+    --border: 40 15% 88%;
+    --input: 40 15% 88%;
+    --ring: 255 85% 55%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 10%;
+    --secondary: 40 10% 94%;
+    --secondary-foreground: 220 20% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --chart-1: 255 85% 55%;
+    --chart-2: 165 80% 40%;
+    --chart-3: 40 60% 50%;
+    --chart-4: 200 70% 50%;
+    --chart-5: 330 70% 55%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Dark Mode - Deep Space + Neon */
+    --background: 240 15% 8%;           /* Deep blue-black */
+    --foreground: 40 20% 95%;           /* Warm cream */
+    --primary: 270 100% 70%;            /* Bright purple */
+    --primary-foreground: 0 0% 100%;
+    --accent: 165 90% 50%;              /* Neon teal */
+    --accent-foreground: 0 0% 0%;
+    --muted: 240 10% 15%;
+    --muted-foreground: 40 10% 60%;
+    --card: 240 12% 12%;
+    --card-foreground: 40 20% 95%;
+    --border: 240 10% 20%;
+    --input: 240 10% 20%;
+    --ring: 270 100% 70%;
+    --popover: 240 12% 12%;
+    --popover-foreground: 40 20% 95%;
+    --secondary: 240 10% 15%;
+    --secondary-foreground: 40 20% 95%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --chart-1: 270 100% 70%;
+    --chart-2: 165 90% 50%;
+    --chart-3: 200 80% 55%;
+    --chart-4: 40 80% 60%;
+    --chart-5: 330 80% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
