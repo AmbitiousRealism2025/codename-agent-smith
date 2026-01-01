@@ -1,94 +1,164 @@
-# Agent Advisor PWA (2026 Project)
+# Agent Advisor PWA
 
-**Status**: Planning Phase
-**Version**: 1.0.0-alpha
-**Target**: Stage 1 MVP (6-8 weeks)
+**Status**: MVP Complete  
+**Version**: [v1.0.0-mvp](https://github.com/AmbitiousRealism2025/codename-agent-smith/releases/tag/v1.0.0-mvp)  
+**Last Updated**: 2026-01-01
 
 ---
 
 ## Overview
 
-A modern, professional Progressive Web App (PWA) that guides "Vibe Coders" (intermediate+ developers) through creating custom Claude Agent SDK applications. Features a sharp, polished UI with multi-provider API support and hybrid deployment options.
+A Progressive Web App that guides developers through an interactive interview to determine the optimal AI agent configuration for their projects, then generates ready-to-use planning documents.
 
 ---
 
-## Quick Links
+## Features
 
-- **Master Plan**: [docs/MASTER_PLAN.md](./docs/MASTER_PLAN.md)
-- **CLI Context**: [docs/CONTEXT_FROM_CLI.md](./docs/CONTEXT_FROM_CLI.md)
-- **Original CLI Project**: `/Users/ambrealismwork/Desktop/Coding-Projects/agent_advisor-minimax-mvp`
+### Interview System
+- 15-question adaptive interview covering project type, team size, timeline, and constraints
+- 4 question types: text, single-choice, multi-select, boolean
+- Progress tracking with animated indicators
+- Session persistence via IndexedDB
+
+### Agent Classification
+- 5 agent archetypes: Solo Coder, Pair Programmer, Dev Team, Autonomous Squad, Human-in-the-Loop
+- Weighted scoring based on 8 dimensions
+- Confidence scoring with match percentages
+
+### Document Generation
+- Planning documents generated client-side
+- Markdown export with copy/download
+- Template-based output customized to archetype
+
+### Provider Support
+- Anthropic Claude (direct API)
+- OpenRouter (multi-model gateway)
+- MiniMax (alternative provider)
+- Secure API key storage in IndexedDB
+
+### PWA
+- Installable on desktop and mobile
+- Offline-capable with service worker
+- Responsive design (mobile bottom nav, desktop sidebar)
 
 ---
 
 ## Tech Stack
 
-### Frontend
-- React 18.3 + TypeScript
-- Vite 6
-- TailwindCSS v3
-- shadcn/ui
-- Zustand (state management)
-- Framer Motion (animations)
+| Layer | Technology |
+|-------|------------|
+| Framework | React 18.3 + TypeScript |
+| Build | Vite + vite-plugin-pwa |
+| Styling | Tailwind CSS + shadcn/ui |
+| Theme | Catppuccin (custom warm blush light / Frappé dark) |
+| State | Zustand with persist middleware |
+| Storage | Dexie (IndexedDB wrapper) |
+| Runtime | Bun |
+| A11y | axe-core (dev mode) |
 
-### Backend
-- Convex (backend-as-a-service)
-- IndexedDB (local persistence)
-- Dexie.js (IndexedDB wrapper)
+---
 
-### Development
-- Bun (runtime & package manager)
-- Vitest (testing)
-- Playwright (E2E testing)
+## Quick Start
+
+```bash
+cd packages/web
+
+# Install dependencies
+bun install
+
+# Development server
+bun run dev          # http://localhost:5173
+
+# Type checking
+bun run typecheck
+
+# Production build
+bun run build
+bun run preview
+```
 
 ---
 
 ## Project Structure
 
 ```
-agent-advisor-pwa/
-├── packages/web/       # React PWA application
-├── convex/             # Convex backend
-├── docs/               # Documentation
-└── README.md           # This file
+packages/web/
+├── src/
+│   ├── components/
+│   │   ├── interview/     # QuestionCard, ProgressIndicator
+│   │   ├── layout/        # MainLayout, Sidebar, Header, BottomNav
+│   │   ├── pages/         # LandingPage, AdvisorPage, TemplatesPage
+│   │   ├── providers/     # ProviderSelector
+│   │   ├── export/        # DocumentExport
+│   │   └── ui/            # shadcn components + ThemeToggle
+│   ├── lib/
+│   │   ├── interview/     # questions.ts
+│   │   ├── classification/# classifier.ts
+│   │   ├── documentation/ # document-generator.ts
+│   │   ├── providers/     # provider abstraction
+│   │   └── storage/       # Dexie IndexedDB layer
+│   ├── pages/             # SetupPage, InterviewPage, ResultsPage
+│   ├── stores/            # Zustand stores
+│   ├── templates/         # Agent archetype templates
+│   ├── styles/            # globals.css (Catppuccin theme)
+│   └── types/             # TypeScript interfaces
+├── public/
+│   └── icons/             # PWA icons
+└── vite.config.ts         # Vite + PWA configuration
 ```
 
 ---
 
-## Development Roadmap
+## User Flow
 
-### Stage 1: MVP (6-8 weeks)
-- Interview flow (15 questions)
-- Classification engine (5 templates)
-- Document generation
-- 3 provider integrations (Anthropic, OpenRouter, MiniMax)
-- Self-hosted mode (IndexedDB + local API keys)
-- PWA installable
-- 80%+ test coverage
-
-### Stage 2: Features (4-6 weeks)
-- User authentication (Clerk)
-- Session history
-- Template customization
-- Additional providers (GLM, OpenAI)
-- Export formats (PDF, HTML)
-
-### Stage 3: Polish (4-6 weeks)
-- Subscription billing
-- Analytics dashboard
-- Multi-language support
-- Advanced features
+```
+/ (Landing) → /setup (Provider) → /interview (15 questions) → /results (Classification + Export)
+```
 
 ---
 
-## Getting Started
+## Accessibility
 
-**Note**: Project setup in progress. See [docs/MASTER_PLAN.md](./docs/MASTER_PLAN.md) for detailed implementation plan.
+- Skip-to-content links on all pages
+- ARIA labels on icon-only buttons
+- Focus-visible states on all interactive elements
+- Keyboard-navigable provider cards
+- WCAG AA color contrast compliance
+- axe-core automated testing in dev mode
 
 ---
 
-## Contributing
+## Theme
 
-This project is in active planning/development. Contributions welcome after MVP release.
+Uses a customized Catppuccin palette:
+
+| Mode | Background | Primary |
+|------|------------|---------|
+| Light | Warm blush `hsl(10, 57%, 88%)` | Peach `#fe640b` |
+| Dark | Frappé Mantle `hsl(231, 19%, 20%)` | Teal `#94e2d5` |
+
+Typography: Satoshi (display) + General Sans (body)
+
+---
+
+## Roadmap
+
+### Completed (MVP)
+- [x] Interview flow (15 questions)
+- [x] Classification engine (5 archetypes)
+- [x] Document generation
+- [x] 3 provider integrations
+- [x] PWA installable + offline
+- [x] Accessibility audit
+- [x] Catppuccin theme
+
+### Future
+- [ ] Unit tests (Vitest configured)
+- [ ] E2E tests (Playwright)
+- [ ] User authentication
+- [ ] Cloud sync
+- [ ] Additional providers
+- [ ] Multi-language support
 
 ---
 

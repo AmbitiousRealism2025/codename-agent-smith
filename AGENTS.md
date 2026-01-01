@@ -1,15 +1,15 @@
 # AGENT ADVISOR PWA - PROJECT KNOWLEDGE BASE
 
-**Generated:** 2025-12-31
-**Commit:** 197e857
-**Branch:** main
-**Status:** Scaffolded (Ready for Implementation)
+**Updated:** 2026-01-01  
+**Version:** v1.0.0-mvp  
+**Branch:** dev  
+**Status:** MVP Complete
 
 ---
 
 ## OVERVIEW
 
-PWA guiding developers through Claude Agent SDK application creation. React 18 + TypeScript + Vite + Convex + shadcn/ui stack. Currently documentation-only; no code implemented yet.
+Progressive Web App guiding developers through AI agent configuration. 15-question interview → classification into 5 agent archetypes → planning document generation. Pure client-side (no backend required).
 
 ---
 
@@ -17,99 +17,154 @@ PWA guiding developers through Claude Agent SDK application creation. React 18 +
 
 ```
 ./
-├── docs/                    # Planning documentation
-│   ├── MASTER_PLAN.md       # Full project vision, architecture, tech decisions
-│   ├── MVP_PHASE_PLAN.md    # Detailed 8-week implementation phases
-│   └── CONTEXT_FROM_CLI.md  # Business logic to port from CLI predecessor
-├── packages/web/            # React PWA application
+├── packages/web/                # React PWA application
 │   ├── src/
-│   │   ├── components/      # React UI (layout/, pages/, interview/, templates/)
-│   │   ├── lib/             # Business logic (interview/, classification/, providers/)
-│   │   ├── stores/          # Zustand state (advisor-store, ui-store, provider-store)
-│   │   ├── types/           # TypeScript interfaces
-│   │   └── styles/          # globals.css with design tokens
-│   ├── vite.config.ts       # Vite + PWA configuration
-│   └── tailwind.config.ts   # Custom theme (Satoshi, colors, animations)
-├── convex/                  # Backend-as-a-service
-│   ├── schema.ts            # sessions, responses, documents tables
-│   └── sessions.ts          # CRUD operations
-├── package.json             # Bun workspace root
-└── AGENTS.md                # This file
+│   │   ├── components/
+│   │   │   ├── interview/       # QuestionCard, ProgressIndicator, StageIndicator
+│   │   │   ├── layout/          # MainLayout, Sidebar, Header, BottomNav
+│   │   │   ├── pages/           # LandingPage, AdvisorPage, TemplatesPage, SettingsPage
+│   │   │   ├── providers/       # ProviderSelector
+│   │   │   ├── export/          # DocumentExport
+│   │   │   └── ui/              # shadcn components + ThemeToggle
+│   │   ├── lib/
+│   │   │   ├── interview/       # questions.ts (15 questions, 4 stages)
+│   │   │   ├── classification/  # classifier.ts (weighted scoring)
+│   │   │   ├── documentation/   # document-generator.ts (markdown output)
+│   │   │   ├── providers/       # provider abstraction layer
+│   │   │   └── storage/         # Dexie IndexedDB wrapper
+│   │   ├── pages/               # SetupPage, InterviewPage, ResultsPage
+│   │   ├── stores/              # Zustand (advisor-store, ui-store, provider-store)
+│   │   ├── templates/           # 5 agent archetype templates + sections
+│   │   ├── styles/              # globals.css (Catppuccin theme tokens)
+│   │   └── types/               # TypeScript interfaces
+│   ├── public/icons/            # PWA icons (192, 512, maskable)
+│   ├── vite.config.ts           # Vite + PWA + service worker
+│   └── tailwind.config.ts       # Catppuccin colors, Satoshi fonts
+├── docs/                        # Planning documentation (historical)
+├── AGENTS.md                    # This file
+├── HANDOFF.md                   # Session continuation context
+└── README.md                    # Project overview
 ```
 
 ---
 
-## WHERE TO LOOK
+## KEY FILES
 
-| Task | Location | Notes |
-|------|----------|-------|
-| Understand full scope | `docs/MASTER_PLAN.md` | Tech stack, architecture, success criteria |
-| Implementation tasks | `docs/MVP_PHASE_PLAN.md` | Granular tasks with deliverables + design specs |
-| Business logic to reuse | `docs/CONTEXT_FROM_CLI.md` | Interview questions, classification, templates |
-| CLI source to port | `/Users/.../agent_advisor-minimax-mvp` | Referenced but external |
+| Task | Location |
+|------|----------|
+| Interview questions | `src/lib/interview/questions.ts` |
+| Classification logic | `src/lib/classification/classifier.ts` |
+| Document generation | `src/lib/documentation/document-generator.ts` |
+| Agent templates | `src/templates/` |
+| Theme colors | `src/styles/globals.css` |
+| State management | `src/stores/advisor-store.ts` |
+| IndexedDB schema | `src/lib/storage/db.ts` |
+| PWA config | `vite.config.ts` |
 
 ---
 
 ## CONVENTIONS
 
-### Design Direction (Locked)
-- **Aesthetic:** Editorial Minimalism with Kinetic Accents
-- **Typography:** Satoshi (display) + General Sans (body) + JetBrains Mono (code)
-- **Colors:** Warm neutrals + electric violet/teal accents (NOT generic purple gradients)
-- **Motion:** Strategic animations on high-impact moments only
+### Design System (Locked)
+- **Theme:** Catppuccin (customized)
+  - Light: Warm blush background `hsl(10, 57%, 88%)`, Peach primary `#fe640b`
+  - Dark: Frappé Mantle `hsl(231, 19%, 20%)`, Teal primary `#94e2d5`
+- **Typography:** Satoshi (display) + General Sans (body)
+- **Reference:** https://catppuccin.com/palette/
 
-### Tech Stack (Decided)
+### Tech Stack
 - **Runtime:** Bun (not npm/yarn)
-- **Framework:** React 18.3 (not 19 yet—stability)
-- **Backend:** Convex (real-time, TypeScript-first)
+- **Framework:** React 18.3 + TypeScript
+- **Build:** Vite 6 + vite-plugin-pwa
 - **Styling:** TailwindCSS v3 + shadcn/ui
-- **State:** Zustand (not Redux/Context)
-- **Storage:** IndexedDB via Dexie.js (self-hosted mode)
+- **State:** Zustand with persist middleware
+- **Storage:** IndexedDB via Dexie.js
+- **A11y:** axe-core (dev mode automated testing)
 
-### Patterns to Follow
-- 15-question interview flow (4 stages: discovery → requirements → architecture → output)
-- 5 agent templates (data-analyst, content-creator, code-assistant, research-agent, automation-agent)
-- Template-based classification with weighted scoring
-- Markdown document generation (8 standardized sections)
+### Patterns
+- 15-question interview (4 stages: discovery → requirements → architecture → output)
+- 5 agent archetypes: Solo Coder, Pair Programmer, Dev Team, Autonomous Squad, Human-in-the-Loop
+- Weighted classification with confidence scoring
+- Client-side document generation (no API required for core flow)
+- Provider abstraction layer for API calls
+
+### Accessibility
+- Skip-to-content links on all standalone pages
+- ARIA labels on icon-only buttons
+- Focus-visible ring states
+- Keyboard-navigable cards (role="radio", tabIndex, key handlers)
+- WCAG AA contrast compliance (6.29:1 on buttons)
 
 ---
 
-## ANTI-PATTERNS (THIS PROJECT)
+## ANTI-PATTERNS
 
 | Never | Why |
 |-------|-----|
-| Use Inter/Roboto/Arial fonts | Generic AI aesthetics—use Satoshi/General Sans |
-| Purple gradients on white | Overused SaaS cliché |
-| Direct Anthropic SDK usage | Use provider abstraction layer |
-| File-based persistence | Use IndexedDB (self-hosted) or Convex (subscription) |
-| MCP tool handlers | CLI pattern—use direct function calls in React |
-| Hardcoded API keys | Encrypt in localStorage or Convex secure storage |
+| Use Inter/Roboto fonts | Use Satoshi/General Sans per design system |
+| White or gray backgrounds | Use Catppuccin Warm Blush (light) or Frappé Mantle (dark) |
+| Purple gradients | Overused AI aesthetic—use Peach/Teal accents |
+| npm/yarn commands | Use Bun exclusively |
+| Direct localStorage for state | Use Zustand persist → IndexedDB |
+| Hardcoded colors | Use CSS custom properties from globals.css |
+| White text on Peach buttons | Use dark text (#11111b) for WCAG compliance |
 
 ---
 
 ## COMMANDS
 
 ```bash
-# Development
-bun install                  # Install dependencies
-bun run dev                  # Start Vite dev server
-npx convex dev               # Start Convex backend
+cd packages/web
 
-# Testing
-bun run test                 # Vitest unit tests
-bun run test:e2e             # Playwright E2E
+# Development
+bun install              # Install dependencies
+bun run dev              # Vite dev server (localhost:5173)
+bun run typecheck        # TypeScript validation
 
 # Build
-bun run build                # Production build
-bun run preview              # Preview production build
+bun run build            # Production build with PWA
+bun run preview          # Preview production build
+
+# Future (configured but not implemented)
+bun run test             # Vitest unit tests
+bun run test:e2e         # Playwright E2E
 ```
+
+---
+
+## USER FLOW
+
+```
+/ (Landing)
+  └─→ "Get Started"
+       └─→ /setup (Provider selection - skippable)
+            └─→ /interview (15 questions across 4 stages)
+                 └─→ /results (Classification + Document export)
+```
+
+**Post-interview navigation:**
+- /advisor - Main dashboard
+- /templates - Browse agent archetypes
+- /settings - Manage API providers
+
+---
+
+## PROVIDERS
+
+| Provider | Status | Notes |
+|----------|--------|-------|
+| Anthropic | ✅ MVP | Direct Claude API |
+| OpenRouter | ✅ MVP | Multi-model gateway |
+| MiniMax | ✅ MVP | Alternative provider |
+| OpenAI | 🔮 Future | Stage 2 |
+| GLM | 🔮 Future | Stage 2 |
 
 ---
 
 ## NOTES
 
-- **CLI Predecessor:** `/Users/ambrealismwork/Desktop/Coding-Projects/agent_advisor-minimax-mvp` contains proven business logic to port
-- **3 Providers MVP:** Anthropic, OpenRouter, MiniMax (OpenAI/GLM in Stage 2)
-- **PWA Required:** Must be installable, work offline for interview flow
-- **Test Coverage Target:** 80%+ for business logic
-- **Timeline:** 6-8 weeks for Stage 1 MVP
+- **Pure client-side:** No backend server required. All data in IndexedDB.
+- **Offline capable:** Core interview flow works without network.
+- **PWA installable:** Add to home screen on mobile/desktop.
+- **axe-core in dev:** Console logs a11y violations automatically.
+- **Theme toggle:** Available on all pages (floating button, top-right).
