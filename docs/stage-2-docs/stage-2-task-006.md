@@ -5,7 +5,7 @@
 **Estimated**: 4 hours
 **Dependencies**: Task 2.1.1 (Unit Test Setup)
 **Coverage Target**: 85%+
-**Status**: Not Started
+**Status**: Complete
 
 ---
 
@@ -17,10 +17,10 @@ Create unit tests for all Zustand stores, validating actions, selectors, and per
 
 ## Deliverables
 
-- [ ] Test `advisor-store.ts` - all actions and selectors
-- [ ] Test `provider-store.ts` - provider selection persistence
-- [ ] Test `ui-store.ts` - theme and layout preferences
-- [ ] Test persist middleware behavior
+- [x] Test `advisor-store.ts` - all actions and selectors
+- [x] Test `provider-store.ts` - provider selection persistence
+- [x] Test `ui-store.ts` - theme and layout preferences
+- [x] Test persist middleware behavior
 
 ---
 
