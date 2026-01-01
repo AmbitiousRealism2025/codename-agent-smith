@@ -5,7 +5,7 @@
 **Estimated**: 5 hours
 **Dependencies**: Task 2.1.1 (Unit Test Setup)
 **Coverage Target**: 80%+
-**Status**: Not Started
+**Status**: Complete
 
 ---
 
@@ -17,11 +17,11 @@ Create unit tests for all provider adapters, validating request/response formatt
 
 ## Deliverables
 
-- [ ] Test `anthropic-adapter.ts` - request/response formatting
-- [ ] Test `openrouter-adapter.ts` - multi-model support
-- [ ] Test `minimax-adapter.ts` - JWT authentication
-- [ ] Test `registry.ts` - provider lookup
-- [ ] Mock API responses for all providers
+- [x] Test `anthropic-adapter.ts` - request/response formatting
+- [x] Test `openrouter-adapter.ts` - multi-model support
+- [x] Test `minimax-adapter.ts` - JWT authentication
+- [x] Test `registry.ts` - provider lookup
+- [x] Mock API responses for all providers
 
 ---
 
