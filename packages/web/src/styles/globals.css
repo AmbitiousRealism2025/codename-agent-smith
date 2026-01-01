@@ -7,7 +7,7 @@
 @layer base {
   :root {
     /* Catppuccin Latte - Light Mode (Crust background + Peach accent) */
-    --background: 220 21% 89%;          /* Crust #dce0e8 */
+    --background: 10 57% 88%;            /* Warm blush */
     --foreground: 234 16% 35%;          /* Text #4c4f69 */
     --primary: 22 99% 52%;              /* Peach #fe640b */
     --primary-foreground: 0 0% 100%;

@@ -1,87 +1,82 @@
 # Agent Advisor PWA - Session Handoff Document
 
-**Last Updated**: 2025-12-31 (9:30 PM EST)
-**Purpose**: Continue development in next session
+**Last Updated**: 2026-01-01
+**Status**: MVP NEARLY COMPLETE - Ready for final review
 
 ---
 
 ## Project Location
 `/Users/ambrealismwork/Desktop/Coding-Projects/codename-agent-smith/packages/web`
 
-## Current Status: PHASES 1.1-1.5 COMPLETE
+## Current Status: MVP 95% COMPLETE
 
-### Phase 1.1: Foundation & Setup ✅
-- Vite + React 18.3 + TypeScript configured
-- shadcn/ui with 12 components installed
-- Custom warm color palette (NOT default gray)
-- Satoshi + General Sans fonts installed
-- Tailwind configured with design tokens
+### Completed This Session
+- ✅ Mobile bottom navigation bar (Interview, Templates, Settings)
+- ✅ Catppuccin color theme (Mocha dark / Latte light with custom tweaks)
+- ✅ Theme toggle on all standalone pages
+- ✅ Comprehensive accessibility audit and fixes
+- ✅ Skip-to-content links, focus states, ARIA labels
+- ✅ PWA icons (SVG) and build configuration
 
-### Phase 1.2: Core Business Logic ✅
-- Interview questions (15) ported to `src/lib/interview/questions.ts`
-- Zustand advisor-store with full state machine (`src/stores/advisor-store.ts`)
-- IndexedDB storage layer with Dexie (`src/lib/storage/`)
-- Classification engine (`src/lib/classification/classifier.ts`)
-- Document generator (`src/lib/documentation/document-generator.ts`)
-- 5 agent templates (`src/templates/`)
-- Provider abstraction for Anthropic/OpenRouter/MiniMax (`src/lib/providers/`)
-
-### Phase 1.3: Interview UI ✅
-- `src/components/interview/QuestionCard.tsx` - handles text, choice, multiselect, boolean
-- `src/components/interview/ProgressIndicator.tsx` - animated SVG ring
-- `src/components/interview/StageIndicator.tsx` - breadcrumb with checkmarks
-- `src/pages/InterviewPage.tsx` - full interview flow with completion state
-
-### Phase 1.4: Provider UI & Results ✅
-- `src/components/providers/ProviderSelector.tsx` - provider cards with API key input
-- `src/pages/ResultsPage.tsx` - classification results display
-- `src/components/export/DocumentExport.tsx` - markdown export with copy/download
-
-### Phase 1.5: Integration & Polish ✅
-- `src/pages/SetupPage.tsx` - provider selection before interview
-- `src/components/ErrorBoundary.tsx` - error handling wrapper
-- `src/components/pages/SettingsPage.tsx` - provider management
-- App.tsx routes all wired up
-- LandingPage "Get Started" → `/setup` (fixed 2025-12-31)
+### Previously Completed
+- ✅ Full interview flow (15 questions, 4 stages)
+- ✅ Classification engine with 5 agent templates
+- ✅ Document generation (PlanningDocumentGenerator)
+- ✅ Provider selector (Anthropic, OpenRouter, MiniMax)
+- ✅ Skip setup option for testing
+- ✅ Bug fixes (boolean validation, dialog click-outside)
+- ✅ E2E testing (manual, documented in docs/)
+- ✅ PWA configured (vite-plugin-pwa, service worker)
+- ✅ Offline data persistence (Dexie/IndexedDB)
 
 ---
 
-## Routes (App.tsx)
+## Commits Ready to Push (7 total)
+
+```
+d95076d Improve accessibility across all pages
+e6bbaa7 Add theme toggle to all pages and customize Catppuccin colors
+e008561 Switch to Catppuccin color theme
+865df47 Add mobile bottom navigation bar
+7e8f544 Add PWA icons and fix build configuration
+5c6444a Fix boolean question validation
+19c3e8a Add session-aware pages, template modals, skip setup, dialog fix
+```
+
+---
+
+## Routes
 
 | Path | Component | Status |
 |------|-----------|--------|
-| `/` | LandingPage | ✅ Links to /setup |
-| `/setup` | SetupPage | ✅ Provider selection |
+| `/` | LandingPage | ✅ Theme toggle, skip link |
+| `/setup` | SetupPage | ✅ Skip option, theme toggle |
 | `/interview` | InterviewPage | ✅ 15-question flow |
 | `/results` | ResultsPage | ✅ Classification + export |
-| `/advisor` | AdvisorPage | Placeholder |
-| `/templates` | TemplatesPage | Placeholder |
+| `/advisor` | AdvisorPage | ✅ Session-aware |
+| `/templates` | TemplatesPage | ✅ Filtering, modals |
 | `/settings` | SettingsPage | ✅ Provider management |
 
 ---
 
-## Verification Status
+## Theme Configuration
 
-| Check | Result |
-|-------|--------|
-| TypeScript (`bun run typecheck`) | ✅ Passes |
-| Dev server (`bun run dev`) | ✅ Runs at localhost:5173 |
-| Manual flow test | ⏳ Not yet tested end-to-end |
+**Catppuccin-based** (reference: https://catppuccin.com/palette/)
+
+| Mode | Background | Primary | Accent |
+|------|------------|---------|--------|
+| Light | Crust #dce0e8 | Peach #fe640b | Peach |
+| Dark | Frappé Mantle hsl(231,19%,20%) | Teal #94e2d5 | Teal |
 
 ---
 
-## Next Steps (Phase 1.6+)
+## Known Gaps (Post-MVP)
 
-### Immediate (Next Session)
-1. **Manual E2E Test** - Walk through `/setup` → `/interview` → `/results`
-2. **Fix Runtime Issues** - Check browser console for errors
-3. **Mobile Responsive** - Test on smaller screens
-4. **Placeholder Pages** - Flesh out AdvisorPage and TemplatesPage
-
-### Later
-5. **PWA Configuration** - Service worker, manifest
-6. **Convex Integration** - Backend for session persistence
-7. **Test Coverage** - Vitest unit tests
+| Feature | Status | Priority |
+|---------|--------|----------|
+| Unit tests | 0 files (Vitest ready) | Post-MVP |
+| Offline UI indicator | Not implemented | Nice-to-have |
+| SSE streaming | Not needed (client-side) | N/A |
 
 ---
 
@@ -93,35 +88,27 @@ cd /Users/ambrealismwork/Desktop/Coding-Projects/codename-agent-smith/packages/w
 bun install          # Install dependencies
 bun run typecheck    # Verify TypeScript
 bun run dev          # Start dev server at localhost:5173
+bun run build        # Production build with PWA
 ```
 
 ---
 
-## Key Files Modified This Session
+## Test Flow
 
-```
-src/
-├── components/
-│   ├── pages/LandingPage.tsx    # Fixed: now links to /setup
-│   ├── pages/SettingsPage.tsx   # Provider management
-│   ├── providers/ProviderSelector.tsx
-│   ├── export/DocumentExport.tsx
-│   └── ErrorBoundary.tsx
-├── pages/
-│   ├── SetupPage.tsx
-│   ├── InterviewPage.tsx
-│   └── ResultsPage.tsx
-└── App.tsx                      # All routes configured
-```
+1. Navigate to `localhost:5173`
+2. Click "Get Started" → `/setup`
+3. Click "Skip for now" → `/interview`
+4. Answer 15 questions → `/results`
+5. View recommendations, export document
 
 ---
 
 ## Design Constraints (DO NOT CHANGE)
 
-- **Colors**: Warm neutrals + electric violet/teal (NOT default gray)
+- **Colors**: Catppuccin palette (Mocha/Latte variants)
 - **Fonts**: Satoshi (display) + General Sans (body)
 - **Runtime**: Bun (NOT npm/yarn)
-- **State**: Zustand stores
+- **State**: Zustand stores with persist middleware
 - **Storage**: IndexedDB via Dexie
 
 ---
@@ -130,19 +117,27 @@ src/
 
 ```
 Continue the Agent Advisor PWA at:
-/Users/ambrealismwork/Desktop/Coding-Projects/codename-agent-smith
+/Users/ambrealismwork/Desktop/Coding-Projects/codename-agent-smith/packages/web
 
-Phases 1.1-1.5 are COMPLETE. The app has:
-- Full routing: / → /setup → /interview → /results
-- Provider selection with encrypted API key storage
-- 15-question interview flow with state machine
-- Classification engine recommending agent templates
-- Document export (markdown)
+## Status: MVP 95% Complete
 
-NEXT: Manual E2E test, fix any runtime errors, mobile responsive check.
+7 commits ready to push (not yet on remote):
+- Accessibility improvements
+- Catppuccin theme (dark: Teal primary, light: Peach primary)
+- Mobile bottom navigation
+- PWA icons and config
+- Bug fixes
 
-Commands:
-  cd packages/web && bun run dev  # Start at localhost:5173
+## Test the App
+bun run dev → localhost:5173
+Flow: / → Get Started → Skip setup → Interview (15 Qs) → Results
 
-Test flow: Landing → Get Started → Select Provider → Interview → Results
+## Remaining
+- User has ONE more change before MVP complete
+- Then push commits and create PR
+
+## Design
+- Catppuccin colors: https://catppuccin.com/palette/
+- Dark: Frappé Mantle bg, Teal buttons
+- Light: Latte Crust bg, Peach buttons
 ```
