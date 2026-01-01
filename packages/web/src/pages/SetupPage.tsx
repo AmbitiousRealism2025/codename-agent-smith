@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useProviderStore } from '@/stores/provider-store';
 import { ProviderSelector } from '@/components/providers/ProviderSelector';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, AlertTriangle } from 'lucide-react';
 
 export function SetupPage() {
   const navigate = useNavigate();
@@ -41,6 +41,32 @@ export function SetupPage() {
             </Button>
           </motion.div>
         )}
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="mt-8 pt-6 border-t border-border/50"
+        >
+          <div className="text-center space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Want to explore first?
+            </p>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleComplete}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Skip for now
+              <ArrowRight className="w-3 h-3 ml-1" />
+            </Button>
+            <p className="text-xs text-muted-foreground/70 flex items-center justify-center gap-1">
+              <AlertTriangle className="w-3 h-3" />
+              Document generation requires a configured provider
+            </p>
+          </div>
+        </motion.div>
       </div>
     </motion.div>
   );
