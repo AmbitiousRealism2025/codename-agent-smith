@@ -200,8 +200,8 @@ describe('minimaxAdapter', () => {
       const config = minimaxAdapter.buildRequestConfig(testPrompt, testModel, testApiKey);
       const body = config.body as { messages: Array<{ role: string; content: string }> };
       expect(body.messages).toHaveLength(1);
-      expect(body.messages[0].role).toBe('user');
-      expect(body.messages[0].content).toBe(testPrompt);
+      expect(body.messages[0]!.role).toBe('user');
+      expect(body.messages[0]!.content).toBe(testPrompt);
     });
 
     it('should use provided model correctly', () => {
@@ -220,36 +220,36 @@ describe('minimaxAdapter', () => {
     it('should handle empty prompt', () => {
       const config = minimaxAdapter.buildRequestConfig('', testModel, testApiKey);
       const body = config.body as { messages: Array<{ content: string }> };
-      expect(body.messages[0].content).toBe('');
+      expect(body.messages[0]!.content).toBe('');
     });
 
     it('should handle multiline prompt', () => {
       const multilinePrompt = 'Line 1\nLine 2\nLine 3';
       const config = minimaxAdapter.buildRequestConfig(multilinePrompt, testModel, testApiKey);
       const body = config.body as { messages: Array<{ content: string }> };
-      expect(body.messages[0].content).toBe(multilinePrompt);
+      expect(body.messages[0]!.content).toBe(multilinePrompt);
     });
 
     it('should handle prompt with special characters', () => {
       const specialPrompt = 'Test with <special> & "characters" \'quotes\'';
       const config = minimaxAdapter.buildRequestConfig(specialPrompt, testModel, testApiKey);
       const body = config.body as { messages: Array<{ content: string }> };
-      expect(body.messages[0].content).toBe(specialPrompt);
+      expect(body.messages[0]!.content).toBe(specialPrompt);
     });
 
     it('should handle prompt with unicode characters', () => {
       const unicodePrompt = 'Hello 你好 مرحبا 🎉';
       const config = minimaxAdapter.buildRequestConfig(unicodePrompt, testModel, testApiKey);
       const body = config.body as { messages: Array<{ content: string }> };
-      expect(body.messages[0].content).toBe(unicodePrompt);
+      expect(body.messages[0]!.content).toBe(unicodePrompt);
     });
 
     it('should handle very long prompt', () => {
       const longPrompt = 'A'.repeat(10000);
       const config = minimaxAdapter.buildRequestConfig(longPrompt, testModel, testApiKey);
       const body = config.body as { messages: Array<{ content: string }> };
-      expect(body.messages[0].content).toBe(longPrompt);
-      expect(body.messages[0].content.length).toBe(10000);
+      expect(body.messages[0]!.content).toBe(longPrompt);
+      expect(body.messages[0]!.content.length).toBe(10000);
     });
   });
 

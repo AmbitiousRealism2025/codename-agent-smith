@@ -1401,10 +1401,10 @@ describe('PlanningDocumentGenerator', () => {
       expect(document).toContain('- vitest');
     });
 
-    it('should handle MCP server without URL', () => {
+    it('should handle MCP server without authentication', () => {
       const recommendations = createMockRecommendations({
         mcpServers: [
-          { name: 'local-server', description: 'Local MCP server' },
+          { name: 'local-server', description: 'Local MCP server', url: 'http://localhost:3000' },
         ],
       });
       const options = createMockOptions({ recommendations });
@@ -1475,9 +1475,9 @@ describe('PlanningDocumentGenerator', () => {
     it('should display multiple MCP servers in overview', () => {
       const recommendations = createMockRecommendations({
         mcpServers: [
-          { name: 'fs', description: 'Filesystem' },
-          { name: 'git', description: 'Git operations' },
-          { name: 'db', description: 'Database access' },
+          { name: 'fs', description: 'Filesystem', url: 'http://localhost:3001' },
+          { name: 'git', description: 'Git operations', url: 'http://localhost:3002' },
+          { name: 'db', description: 'Database access', url: 'http://localhost:3003' },
         ],
       });
       const options = createMockOptions({ recommendations });

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { useAdvisorStore } from '@/stores/advisor-store';
 import { INTERVIEW_QUESTIONS } from '../questions';
-import type { AgentRecommendations } from '@/types/interview';
+import type { AgentRecommendations, ResponseValue } from '@/types/interview';
 import { localStorageMock } from '@/test/setup';
 
 /**
@@ -147,7 +147,7 @@ describe('useAdvisorStore', () => {
       const discoveryQuestions = getQuestionsForStage('discovery');
 
       // Answer all discovery questions
-      discoveryQuestions.forEach((q, index) => {
+      discoveryQuestions.forEach((q) => {
         const value =
           q.type === 'multiselect' ? ['Developers'] : q.type === 'boolean' ? true : 'Test answer';
         store.recordResponse(q.id, value);
@@ -169,7 +169,7 @@ describe('useAdvisorStore', () => {
             : q.type === 'boolean'
               ? true
               : q.type === 'choice'
-                ? q.options?.[0]
+                ? (q.options?.[0] ?? 'Test answer')
                 : 'Test answer';
         store.recordResponse(q.id, value);
       });
@@ -846,14 +846,16 @@ function answerAllQuestionsUpToStage(
   for (let i = 0; i < targetIndex; i++) {
     const stageQuestions = getQuestionsForStage(stages[i] ?? 'discovery');
     stageQuestions.forEach((q) => {
-      const value =
-        q.type === 'multiselect'
-          ? ['Developers']
-          : q.type === 'boolean'
-            ? true
-            : q.type === 'choice'
-              ? q.options?.[0]
-              : 'Test answer';
+      let value: ResponseValue;
+      if (q.type === 'multiselect') {
+        value = ['Developers'];
+      } else if (q.type === 'boolean') {
+        value = true;
+      } else if (q.type === 'choice' && q.options && q.options.length > 0) {
+        value = q.options[0] as string;
+      } else {
+        value = 'Test answer';
+      }
       store.recordResponse(q.id, value);
     });
   }
