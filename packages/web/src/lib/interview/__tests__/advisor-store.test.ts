@@ -778,6 +778,58 @@ describe('useAdvisorStore', () => {
       const state = useAdvisorStore.getState();
       expect(state.requirements.environment?.runtime).toBe('cloud');
     });
+
+    it('should create default capabilities when recording data_analysis without prior capability setup', () => {
+      const store = useAdvisorStore.getState();
+      // Directly set the store to simulate being at the data_analysis question without capabilities
+      useAdvisorStore.setState({
+        currentStage: 'architecture',
+        currentQuestionIndex: 4, // q11_data_analysis position
+        requirements: {}, // No capabilities yet
+      });
+
+      store.recordResponse('q11_data_analysis', true);
+
+      const state = useAdvisorStore.getState();
+      expect(state.requirements.capabilities).toBeDefined();
+      expect(state.requirements.capabilities?.dataAnalysis).toBe(true);
+      // Should have defaults for other capabilities
+      expect(state.requirements.capabilities?.memory).toBe('none');
+      expect(state.requirements.capabilities?.fileAccess).toBe(false);
+    });
+
+    it('should create default capabilities when recording tool_integrations without prior capability setup', () => {
+      const store = useAdvisorStore.getState();
+      // Directly set the store to simulate being at the tool_integrations question without capabilities
+      useAdvisorStore.setState({
+        currentStage: 'architecture',
+        currentQuestionIndex: 5, // q12_tool_integrations position
+        requirements: {}, // No capabilities yet
+      });
+
+      store.recordResponse('q12_tool_integrations', 'GitHub, Slack');
+
+      const state = useAdvisorStore.getState();
+      expect(state.requirements.capabilities).toBeDefined();
+      expect(state.requirements.capabilities?.toolIntegrations).toEqual(['GitHub', 'Slack']);
+    });
+
+    it('should handle non-string value for tool_integrations', () => {
+      const store = useAdvisorStore.getState();
+      answerAllQuestionsUpToStage(store, 'architecture');
+      store.recordResponse('q7_memory_needs', 'none');
+      store.recordResponse('q8_file_access', false);
+      store.recordResponse('q9_web_access', false);
+      store.recordResponse('q10_code_execution', false);
+      store.recordResponse('q11_data_analysis', false);
+
+      // Pass an array instead of string (edge case)
+      store.recordResponse('q12_tool_integrations', ['GitHub', 'Slack'] as unknown as string);
+
+      const state = useAdvisorStore.getState();
+      // Should fall back to empty array when value is not a string
+      expect(state.requirements.capabilities?.toolIntegrations).toEqual([]);
+    });
   });
 });
 
