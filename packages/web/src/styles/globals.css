@@ -4,60 +4,60 @@
 
 @layer base {
   :root {
-    /* Light Mode - Warm Neutrals + Electric Accents */
-    --background: 40 20% 98%;           /* Warm off-white */
-    --foreground: 220 20% 10%;          /* Deep charcoal */
-    --primary: 255 85% 55%;             /* Electric violet */
-    --primary-foreground: 0 0% 100%;
-    --accent: 165 80% 40%;              /* Vibrant teal */
-    --accent-foreground: 0 0% 100%;
-    --muted: 40 10% 94%;
-    --muted-foreground: 220 15% 40%;
-    --card: 0 0% 100%;
-    --card-foreground: 220 20% 10%;
-    --border: 40 15% 88%;
-    --input: 40 15% 88%;
-    --ring: 255 85% 55%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 10%;
-    --secondary: 40 10% 94%;
-    --secondary-foreground: 220 20% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --chart-1: 255 85% 55%;
-    --chart-2: 165 80% 40%;
-    --chart-3: 40 60% 50%;
-    --chart-4: 200 70% 50%;
-    --chart-5: 330 70% 55%;
+    /* Catppuccin Latte - Light Mode */
+    --background: 220 23% 95%;          /* Base */
+    --foreground: 234 16% 35%;          /* Text */
+    --primary: 266 85% 58%;             /* Mauve */
+    --primary-foreground: 220 23% 95%;
+    --accent: 183 74% 35%;              /* Teal */
+    --accent-foreground: 220 23% 95%;
+    --muted: 223 16% 83%;               /* Surface 0 */
+    --muted-foreground: 233 10% 47%;    /* Subtext 0 */
+    --card: 220 22% 92%;                /* Mantle */
+    --card-foreground: 234 16% 35%;     /* Text */
+    --border: 225 14% 77%;              /* Surface 1 */
+    --input: 225 14% 77%;               /* Surface 1 */
+    --ring: 266 85% 58%;                /* Mauve */
+    --popover: 220 22% 92%;             /* Mantle */
+    --popover-foreground: 234 16% 35%;  /* Text */
+    --secondary: 223 16% 83%;           /* Surface 0 */
+    --secondary-foreground: 234 16% 35%;/* Text */
+    --destructive: 347 87% 44%;         /* Red */
+    --destructive-foreground: 220 23% 95%;
+    --chart-1: 266 85% 58%;             /* Mauve */
+    --chart-2: 183 74% 35%;             /* Teal */
+    --chart-3: 220 91% 54%;             /* Blue */
+    --chart-4: 35 77% 49%;              /* Yellow */
+    --chart-5: 316 73% 69%;             /* Pink */
     --radius: 0.5rem;
   }
 
   .dark {
-    /* Dark Mode - Deep Space + Neon */
-    --background: 240 15% 8%;           /* Deep blue-black */
-    --foreground: 40 20% 95%;           /* Warm cream */
-    --primary: 270 100% 70%;            /* Bright purple */
-    --primary-foreground: 0 0% 100%;
-    --accent: 165 90% 50%;              /* Neon teal */
-    --accent-foreground: 0 0% 0%;
-    --muted: 240 10% 15%;
-    --muted-foreground: 40 10% 60%;
-    --card: 240 12% 12%;
-    --card-foreground: 40 20% 95%;
-    --border: 240 10% 20%;
-    --input: 240 10% 20%;
-    --ring: 270 100% 70%;
-    --popover: 240 12% 12%;
-    --popover-foreground: 40 20% 95%;
-    --secondary: 240 10% 15%;
-    --secondary-foreground: 40 20% 95%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --chart-1: 270 100% 70%;
-    --chart-2: 165 90% 50%;
-    --chart-3: 200 80% 55%;
-    --chart-4: 40 80% 60%;
-    --chart-5: 330 80% 60%;
+    /* Catppuccin Mocha - Dark Mode */
+    --background: 240 21% 15%;          /* Base */
+    --foreground: 226 64% 88%;          /* Text */
+    --primary: 267 84% 81%;             /* Mauve */
+    --primary-foreground: 240 21% 15%;
+    --accent: 170 57% 73%;              /* Teal */
+    --accent-foreground: 240 21% 15%;
+    --muted: 237 16% 23%;               /* Surface 0 */
+    --muted-foreground: 228 24% 72%;    /* Subtext 0 */
+    --card: 240 21% 12%;                /* Mantle */
+    --card-foreground: 226 64% 88%;     /* Text */
+    --border: 234 13% 31%;              /* Surface 1 */
+    --input: 234 13% 31%;               /* Surface 1 */
+    --ring: 267 84% 81%;                /* Mauve */
+    --popover: 240 21% 12%;             /* Mantle */
+    --popover-foreground: 226 64% 88%;  /* Text */
+    --secondary: 237 16% 23%;           /* Surface 0 */
+    --secondary-foreground: 226 64% 88%;/* Text */
+    --destructive: 343 81% 75%;         /* Red */
+    --destructive-foreground: 240 21% 15%;
+    --chart-1: 267 84% 81%;             /* Mauve */
+    --chart-2: 170 57% 73%;             /* Teal */
+    --chart-3: 217 92% 76%;             /* Blue */
+    --chart-4: 41 86% 83%;              /* Yellow */
+    --chart-5: 316 72% 86%;             /* Pink */
   }
 }
 
