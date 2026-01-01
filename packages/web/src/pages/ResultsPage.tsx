@@ -6,6 +6,7 @@ import { AgentClassifier } from '@/lib/classification/classifier';
 import { getTemplateById, ALL_TEMPLATES } from '@/templates';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { Progress } from '@/components/ui/progress';
 import { DocumentExport } from '@/components/export/DocumentExport';
 import { ArrowLeft, Copy, Check, ChevronDown, ChevronUp } from 'lucide-react';
@@ -87,6 +88,7 @@ export function ResultsPage() {
       animate={{ opacity: 1 }}
       className="min-h-screen bg-background"
     >
+      <ThemeToggle />
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <Button
           variant="ghost"

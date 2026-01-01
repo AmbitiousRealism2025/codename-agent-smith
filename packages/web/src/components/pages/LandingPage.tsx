@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, Sparkles } from 'lucide-react';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 export function LandingPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
+      <ThemeToggle />
       <div className="text-center">
         <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5 text-sm text-muted-foreground">
           <Sparkles size={14} className="text-accent" />

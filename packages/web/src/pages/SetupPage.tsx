@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useProviderStore } from '@/stores/provider-store';
 import { ProviderSelector } from '@/components/providers/ProviderSelector';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { ArrowRight, AlertTriangle } from 'lucide-react';
 
 export function SetupPage() {
@@ -19,6 +20,7 @@ export function SetupPage() {
       animate={{ opacity: 1 }}
       className="min-h-screen bg-background flex items-center justify-center"
     >
+      <ThemeToggle />
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2">Agent Advisor</h1>

@@ -6,6 +6,7 @@ import { QuestionCard } from '@/components/interview/QuestionCard';
 import { ProgressIndicator } from '@/components/interview/ProgressIndicator';
 import { StageIndicator } from '@/components/interview/StageIndicator';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import type { ResponseValue } from '@/types/interview';
@@ -110,6 +111,7 @@ export function InterviewPage() {
       animate={{ opacity: 1 }}
       className="min-h-screen bg-background"
     >
+      <ThemeToggle />
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="mb-8">
           <StageIndicator currentStage={progress.currentStage} />

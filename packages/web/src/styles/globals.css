@@ -2,62 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Catppuccin Palette Reference: https://catppuccin.com/palette/ */
+
 @layer base {
   :root {
-    /* Catppuccin Latte - Light Mode */
-    --background: 220 23% 95%;          /* Base */
-    --foreground: 234 16% 35%;          /* Text */
-    --primary: 266 85% 58%;             /* Mauve */
-    --primary-foreground: 220 23% 95%;
-    --accent: 183 74% 35%;              /* Teal */
-    --accent-foreground: 220 23% 95%;
-    --muted: 223 16% 83%;               /* Surface 0 */
-    --muted-foreground: 233 10% 47%;    /* Subtext 0 */
-    --card: 220 22% 92%;                /* Mantle */
-    --card-foreground: 234 16% 35%;     /* Text */
-    --border: 225 14% 77%;              /* Surface 1 */
-    --input: 225 14% 77%;               /* Surface 1 */
-    --ring: 266 85% 58%;                /* Mauve */
-    --popover: 220 22% 92%;             /* Mantle */
-    --popover-foreground: 234 16% 35%;  /* Text */
-    --secondary: 223 16% 83%;           /* Surface 0 */
-    --secondary-foreground: 234 16% 35%;/* Text */
-    --destructive: 347 87% 44%;         /* Red */
-    --destructive-foreground: 220 23% 95%;
-    --chart-1: 266 85% 58%;             /* Mauve */
-    --chart-2: 183 74% 35%;             /* Teal */
-    --chart-3: 220 91% 54%;             /* Blue */
-    --chart-4: 35 77% 49%;              /* Yellow */
-    --chart-5: 316 73% 69%;             /* Pink */
+    /* Catppuccin Latte - Light Mode (Crust background + Peach accent) */
+    --background: 220 21% 89%;          /* Crust #dce0e8 */
+    --foreground: 234 16% 35%;          /* Text #4c4f69 */
+    --primary: 22 99% 52%;              /* Peach #fe640b */
+    --primary-foreground: 0 0% 100%;
+    --accent: 22 99% 52%;               /* Peach #fe640b */
+    --accent-foreground: 0 0% 100%;
+    --muted: 223 16% 83%;               /* Surface 0 #ccd0da */
+    --muted-foreground: 233 10% 47%;    /* Subtext 0 #6c6f85 */
+    --card: 220 22% 92%;                /* Mantle #e6e9ef */
+    --card-foreground: 234 16% 35%;     /* Text #4c4f69 */
+    --border: 225 14% 77%;              /* Surface 1 #bcc0cc */
+    --input: 225 14% 77%;               /* Surface 1 #bcc0cc */
+    --ring: 22 99% 52%;                 /* Peach #fe640b */
+    --popover: 220 22% 92%;             /* Mantle #e6e9ef */
+    --popover-foreground: 234 16% 35%;  /* Text #4c4f69 */
+    --secondary: 223 16% 83%;           /* Surface 0 #ccd0da */
+    --secondary-foreground: 234 16% 35%;/* Text #4c4f69 */
+    --destructive: 347 87% 44%;         /* Red #d20f39 */
+    --destructive-foreground: 0 0% 100%;
+    --chart-1: 22 99% 52%;              /* Peach */
+    --chart-2: 183 74% 35%;             /* Teal #179299 */
+    --chart-3: 220 91% 54%;             /* Blue #1e66f5 */
+    --chart-4: 35 77% 49%;              /* Yellow #df8e1d */
+    --chart-5: 266 85% 58%;             /* Mauve #8839ef */
     --radius: 0.5rem;
   }
 
   .dark {
-    /* Catppuccin Mocha - Dark Mode */
-    --background: 240 21% 15%;          /* Base */
-    --foreground: 226 64% 88%;          /* Text */
-    --primary: 267 84% 81%;             /* Mauve */
-    --primary-foreground: 240 21% 15%;
-    --accent: 170 57% 73%;              /* Teal */
-    --accent-foreground: 240 21% 15%;
-    --muted: 237 16% 23%;               /* Surface 0 */
-    --muted-foreground: 228 24% 72%;    /* Subtext 0 */
-    --card: 240 21% 12%;                /* Mantle */
-    --card-foreground: 226 64% 88%;     /* Text */
-    --border: 234 13% 31%;              /* Surface 1 */
-    --input: 234 13% 31%;               /* Surface 1 */
-    --ring: 267 84% 81%;                /* Mauve */
-    --popover: 240 21% 12%;             /* Mantle */
-    --popover-foreground: 226 64% 88%;  /* Text */
-    --secondary: 237 16% 23%;           /* Surface 0 */
-    --secondary-foreground: 226 64% 88%;/* Text */
-    --destructive: 343 81% 75%;         /* Red */
-    --destructive-foreground: 240 21% 15%;
-    --chart-1: 267 84% 81%;             /* Mauve */
-    --chart-2: 170 57% 73%;             /* Teal */
-    --chart-3: 217 92% 76%;             /* Blue */
-    --chart-4: 41 86% 83%;              /* Yellow */
-    --chart-5: 316 72% 86%;             /* Pink */
+    /* Catppuccin Dark Mode (Subtext 1 background + Peach accent) */
+    --background: 231 19% 20%;          /* Frappé Mantle #292c3c */
+    --foreground: 226 64% 88%;          /* Mocha Text #cdd6f4 */
+    --primary: 170 57% 73%;             /* Mocha Teal #94e2d5 */
+    --primary-foreground: 240 23% 9%;   /* Mocha Crust #11111b */
+    --accent: 170 57% 73%;              /* Mocha Teal #94e2d5 */
+    --accent-foreground: 240 23% 9%;    /* Mocha Crust #11111b */
+    --muted: 237 16% 23%;               /* Mocha Surface 0 #313244 */
+    --muted-foreground: 228 24% 72%;    /* Mocha Subtext 0 #a6adc8 */
+    --card: 234 13% 31%;                /* Mocha Surface 1 #45475a */
+    --card-foreground: 226 64% 88%;     /* Mocha Text #cdd6f4 */
+    --border: 233 12% 39%;              /* Mocha Surface 2 #585b70 */
+    --input: 233 12% 39%;               /* Mocha Surface 2 #585b70 */
+    --ring: 170 57% 73%;                /* Mocha Teal #94e2d5 */
+    --popover: 234 13% 31%;             /* Mocha Surface 1 #45475a */
+    --popover-foreground: 226 64% 88%;  /* Mocha Text #cdd6f4 */
+    --secondary: 170 57% 73%;           /* Mocha Teal #94e2d5 */
+    --secondary-foreground: 226 64% 88%;/* Mocha Text #cdd6f4 */
+    --destructive: 343 81% 75%;         /* Mocha Red #f38ba8 */
+    --destructive-foreground: 240 23% 9%;
+    --chart-1: 20 79% 70%;              /* Peach */
+    --chart-2: 172 39% 65%;             /* Frappé Teal #81c8be */
+    --chart-3: 222 74% 74%;             /* Frappé Blue #8caaee */
+    --chart-4: 40 62% 73%;              /* Frappé Yellow #e5c890 */
+    --chart-5: 277 59% 76%;             /* Frappé Mauve #ca9ee6 */
   }
 }
 
