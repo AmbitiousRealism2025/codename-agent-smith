@@ -238,6 +238,101 @@ describe("Advisor Store", () => {
 
       expect(state.requirements.additionalNotes).toBe("Should support multiple languages");
     });
+
+    it("should update deliveryChannels from q5_delivery_channels", () => {
+      useAdvisorStore.setState({ currentStage: "requirements", currentQuestionIndex: 1 });
+      useAdvisorStore.getState().recordResponse("q5_delivery_channels", ["CLI", "Web", "API"]);
+      const state = useAdvisorStore.getState();
+
+      expect(state.requirements.deliveryChannels).toEqual(["CLI", "Web", "API"]);
+    });
+
+    it("should update successMetrics from q6_success_metrics", () => {
+      useAdvisorStore.setState({ currentStage: "requirements", currentQuestionIndex: 2 });
+      useAdvisorStore.getState().recordResponse("q6_success_metrics", ["Task completion rate", "User satisfaction"]);
+      const state = useAdvisorStore.getState();
+
+      expect(state.requirements.successMetrics).toEqual(["Task completion rate", "User satisfaction"]);
+    });
+
+    it("should handle empty string for tool integrations", () => {
+      useAdvisorStore.setState({ currentStage: "architecture", currentQuestionIndex: 5 });
+      useAdvisorStore.getState().recordResponse("q12_tool_integrations", "");
+      const state = useAdvisorStore.getState();
+
+      expect(state.requirements.capabilities?.toolIntegrations).toEqual([]);
+    });
+
+    it("should handle whitespace-only string for tool integrations", () => {
+      useAdvisorStore.setState({ currentStage: "architecture", currentQuestionIndex: 5 });
+      useAdvisorStore.getState().recordResponse("q12_tool_integrations", "   ,  ,   ");
+      const state = useAdvisorStore.getState();
+
+      expect(state.requirements.capabilities?.toolIntegrations).toEqual([]);
+    });
+
+    it("should not set constraints for empty string", () => {
+      useAdvisorStore.setState({ currentStage: "output", currentQuestionIndex: 1 });
+      useAdvisorStore.getState().recordResponse("q14_constraints", "");
+      const state = useAdvisorStore.getState();
+
+      expect(state.requirements.constraints).toBeUndefined();
+    });
+
+    it("should not set constraints for whitespace-only string", () => {
+      useAdvisorStore.setState({ currentStage: "output", currentQuestionIndex: 1 });
+      useAdvisorStore.getState().recordResponse("q14_constraints", "   ");
+      const state = useAdvisorStore.getState();
+
+      expect(state.requirements.constraints).toBeUndefined();
+    });
+
+    it("should not set additionalNotes for empty string", () => {
+      useAdvisorStore.setState({ currentStage: "output", currentQuestionIndex: 2 });
+      useAdvisorStore.getState().recordResponse("q15_additional_notes", "");
+      const state = useAdvisorStore.getState();
+
+      expect(state.requirements.additionalNotes).toBeUndefined();
+    });
+
+    it("should not overwrite existing description when recording agent name", () => {
+      useAdvisorStore.setState({ requirements: { description: "Existing description" } });
+      useAdvisorStore.getState().recordResponse("q1_agent_name", "New Agent");
+      const state = useAdvisorStore.getState();
+
+      expect(state.requirements.name).toBe("New Agent");
+      expect(state.requirements.description).toBe("Existing description");
+    });
+
+    it("should not overwrite existing description when recording primary outcome", () => {
+      useAdvisorStore.setState({
+        currentQuestionIndex: 1,
+        requirements: { description: "Existing description" }
+      });
+      useAdvisorStore.getState().recordResponse("q2_primary_outcome", "Automate tasks");
+      const state = useAdvisorStore.getState();
+
+      expect(state.requirements.primaryOutcome).toBe("Automate tasks");
+      expect(state.requirements.description).toBe("Existing description");
+    });
+
+    it("should create default capabilities object when updating architecture questions", () => {
+      useAdvisorStore.setState({
+        currentStage: "architecture",
+        currentQuestionIndex: 0,
+        requirements: {}
+      });
+      useAdvisorStore.getState().recordResponse("q7_memory_needs", "short-term");
+      const state = useAdvisorStore.getState();
+
+      expect(state.requirements.capabilities).toBeDefined();
+      expect(state.requirements.capabilities?.memory).toBe("short-term");
+      expect(state.requirements.capabilities?.fileAccess).toBe(false);
+      expect(state.requirements.capabilities?.webAccess).toBe(false);
+      expect(state.requirements.capabilities?.codeExecution).toBe(false);
+      expect(state.requirements.capabilities?.dataAnalysis).toBe(false);
+      expect(state.requirements.capabilities?.toolIntegrations).toEqual([]);
+    });
   });
 
   describe("Stage Progression", () => {
@@ -399,6 +494,51 @@ describe("Advisor Store", () => {
         expect(useAdvisorStore.getState().currentStage).toBe("complete");
         expect(useAdvisorStore.getState().isComplete).toBe(true);
       });
+
+      it("should skip multiple questions consecutively within a stage", () => {
+        expect(useAdvisorStore.getState().currentQuestionIndex).toBe(0);
+
+        useAdvisorStore.getState().skipQuestion();
+        expect(useAdvisorStore.getState().currentQuestionIndex).toBe(1);
+
+        useAdvisorStore.getState().skipQuestion();
+        expect(useAdvisorStore.getState().currentQuestionIndex).toBe(2);
+      });
+
+      it("should skip through an entire stage", () => {
+        // Discovery has 3 questions
+        expect(useAdvisorStore.getState().currentStage).toBe("discovery");
+
+        useAdvisorStore.getState().skipQuestion();
+        useAdvisorStore.getState().skipQuestion();
+        useAdvisorStore.getState().skipQuestion();
+
+        expect(useAdvisorStore.getState().currentStage).toBe("requirements");
+        expect(useAdvisorStore.getState().currentQuestionIndex).toBe(0);
+      });
+
+      it("should preserve existing responses when skipping", () => {
+        // Record a response first
+        useAdvisorStore.getState().recordResponse("q1_agent_name", "My Agent");
+        expect(useAdvisorStore.getState().responses.q1_agent_name).toBe("My Agent");
+
+        // Skip the next question
+        useAdvisorStore.getState().skipQuestion();
+
+        // Previous response should still be there
+        expect(useAdvisorStore.getState().responses.q1_agent_name).toBe("My Agent");
+        expect(useAdvisorStore.getState().currentQuestionIndex).toBe(2);
+      });
+
+      it("should not update requirements when skipping", () => {
+        useAdvisorStore.getState().recordResponse("q1_agent_name", "My Agent");
+        expect(useAdvisorStore.getState().requirements.name).toBe("My Agent");
+
+        useAdvisorStore.getState().skipQuestion();
+
+        // Requirements should not have q2_primary_outcome
+        expect(useAdvisorStore.getState().requirements.primaryOutcome).toBeUndefined();
+      });
     });
 
     describe("Go To Previous Question", () => {
@@ -446,6 +586,140 @@ describe("Advisor Store", () => {
 
         expect(useAdvisorStore.getState().isComplete).toBe(false);
         expect(useAdvisorStore.getState().currentStage).toBe("output");
+      });
+
+      it("should go back multiple questions consecutively within a stage", () => {
+        // Move forward a few questions
+        useAdvisorStore.getState().recordResponse("q1_agent_name", "Test");
+        useAdvisorStore.getState().recordResponse("q2_primary_outcome", "Goal");
+        expect(useAdvisorStore.getState().currentQuestionIndex).toBe(2);
+
+        // Go back twice
+        useAdvisorStore.getState().goToPreviousQuestion();
+        expect(useAdvisorStore.getState().currentQuestionIndex).toBe(1);
+
+        useAdvisorStore.getState().goToPreviousQuestion();
+        expect(useAdvisorStore.getState().currentQuestionIndex).toBe(0);
+      });
+
+      it("should preserve responses when going back", () => {
+        // Record responses
+        useAdvisorStore.getState().recordResponse("q1_agent_name", "Test Agent");
+        useAdvisorStore.getState().recordResponse("q2_primary_outcome", "Test Goal");
+
+        // Go back
+        useAdvisorStore.getState().goToPreviousQuestion();
+
+        // Responses should still be there
+        expect(useAdvisorStore.getState().responses.q1_agent_name).toBe("Test Agent");
+        expect(useAdvisorStore.getState().responses.q2_primary_outcome).toBe("Test Goal");
+      });
+
+      it("should allow re-answering a question after going back", () => {
+        // Record initial response
+        useAdvisorStore.getState().recordResponse("q1_agent_name", "Original Name");
+
+        // Go back
+        useAdvisorStore.getState().goToPreviousQuestion();
+        expect(useAdvisorStore.getState().currentQuestionIndex).toBe(0);
+
+        // Re-answer
+        useAdvisorStore.getState().recordResponse("q1_agent_name", "New Name");
+
+        expect(useAdvisorStore.getState().responses.q1_agent_name).toBe("New Name");
+        expect(useAdvisorStore.getState().requirements.name).toBe("New Name");
+      });
+
+      it("should go back across multiple stages", () => {
+        // Move to architecture stage
+        useAdvisorStore.setState({
+          currentStage: "architecture",
+          currentQuestionIndex: 0,
+        });
+
+        // Go back to requirements (last question)
+        useAdvisorStore.getState().goToPreviousQuestion();
+        expect(useAdvisorStore.getState().currentStage).toBe("requirements");
+        expect(useAdvisorStore.getState().currentQuestionIndex).toBe(2);
+
+        // Go back within requirements
+        useAdvisorStore.getState().goToPreviousQuestion();
+        expect(useAdvisorStore.getState().currentStage).toBe("requirements");
+        expect(useAdvisorStore.getState().currentQuestionIndex).toBe(1);
+
+        // Keep going back to discovery
+        useAdvisorStore.getState().goToPreviousQuestion();
+        useAdvisorStore.getState().goToPreviousQuestion();
+        expect(useAdvisorStore.getState().currentStage).toBe("discovery");
+        expect(useAdvisorStore.getState().currentQuestionIndex).toBe(2);
+      });
+
+      it("should navigate back to last question of output when going back from complete", () => {
+        // Set to complete
+        useAdvisorStore.setState({
+          currentStage: "complete",
+          currentQuestionIndex: 0,
+          isComplete: true,
+        });
+
+        useAdvisorStore.getState().goToPreviousQuestion();
+
+        // Output has 3 questions, so last index is 2
+        expect(useAdvisorStore.getState().currentStage).toBe("output");
+        expect(useAdvisorStore.getState().currentQuestionIndex).toBe(2);
+      });
+    });
+
+    describe("Combined Navigation", () => {
+      it("should handle skip then go back correctly", () => {
+        // Skip first question
+        useAdvisorStore.getState().skipQuestion();
+        expect(useAdvisorStore.getState().currentQuestionIndex).toBe(1);
+
+        // Go back
+        useAdvisorStore.getState().goToPreviousQuestion();
+        expect(useAdvisorStore.getState().currentQuestionIndex).toBe(0);
+
+        // Now answer it
+        useAdvisorStore.getState().recordResponse("q1_agent_name", "Answered After Skip");
+        expect(useAdvisorStore.getState().responses.q1_agent_name).toBe("Answered After Skip");
+      });
+
+      it("should handle mixed navigation through stages", () => {
+        // Answer first two, skip third, move to requirements
+        useAdvisorStore.getState().recordResponse("q1_agent_name", "Test");
+        useAdvisorStore.getState().recordResponse("q2_primary_outcome", "Goal");
+        useAdvisorStore.getState().skipQuestion(); // Skip q3
+
+        expect(useAdvisorStore.getState().currentStage).toBe("requirements");
+
+        // Go back to discovery
+        useAdvisorStore.getState().goToPreviousQuestion();
+        expect(useAdvisorStore.getState().currentStage).toBe("discovery");
+        expect(useAdvisorStore.getState().currentQuestionIndex).toBe(2);
+
+        // Now answer it
+        useAdvisorStore.getState().recordResponse("q3_target_audience", ["Developers"]);
+
+        // Should be in requirements now
+        expect(useAdvisorStore.getState().currentStage).toBe("requirements");
+        expect(useAdvisorStore.getState().currentQuestionIndex).toBe(0);
+      });
+
+      it("should maintain correct progress when navigating back and forth", () => {
+        // Answer some questions
+        useAdvisorStore.getState().recordResponse("q1_agent_name", "Test");
+        useAdvisorStore.getState().recordResponse("q2_primary_outcome", "Goal");
+
+        let progress = useAdvisorStore.getState().getProgress();
+        expect(progress.totalAnswered).toBe(2);
+
+        // Go back and re-answer (should not increase total)
+        useAdvisorStore.getState().goToPreviousQuestion();
+        useAdvisorStore.getState().recordResponse("q2_primary_outcome", "New Goal");
+
+        progress = useAdvisorStore.getState().getProgress();
+        expect(progress.totalAnswered).toBe(2); // Still 2, not 3
       });
     });
   });
