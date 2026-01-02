@@ -315,10 +315,10 @@ import { cn } from "@/lib/utils"
 
 ### Current State
 **Unit Tests**: Vitest 2.1.0 - **Implemented** ✅
-**E2E Tests**: Playwright 1.48.0 configured - **Not yet implemented**
-**A11y Tests**: axe-core 4.11.0 active in dev mode
+**E2E Tests**: Playwright 1.48.0 - **Implemented** ✅
+**A11y Tests**: axe-core 4.11.0 active in dev mode + E2E accessibility tests
 
-### Implemented Test Suites
+### Unit Test Suites
 Located in `packages/web/src/lib/`:
 
 | Test File | Coverage Area |
@@ -328,22 +328,114 @@ Located in `packages/web/src/lib/`:
 | `classification/__tests__/classifier.test.ts` | Scoring logic for 5 agent archetypes |
 | `classification/__tests__/scoring.test.ts` | Scoring utilities and weighting algorithms |
 
+### E2E Test Suites
+Located in `packages/web/e2e/`:
+
+| Test File | Coverage Area |
+|-----------|---------------|
+| `interview-flow.spec.ts` | Complete user journey: Landing → Setup → Interview (all 15 questions) → Results |
+| `document-generation.spec.ts` | Recommendations display, system prompt preview, export functionality |
+| `session-persistence.spec.ts` | Interview answers survive page refresh and browser close |
+| `theme-toggle.spec.ts` | Theme switching between light/dark mode with persistence |
+| `error-handling.spec.ts` | Invalid API key handling, validation errors, error displays |
+| `navigation.spec.ts` | Back button, direct URL access, refresh during interview |
+| `offline-mode.spec.ts` | PWA offline behavior, loading states, network resilience |
+| `accessibility.spec.ts` | Keyboard navigation, ARIA compliance, axe-core validation |
+
+### E2E Test Structure
+
+```
+packages/web/e2e/
+├── fixtures/           # Test setup and configuration
+│   ├── test-base.ts   # Extended test with page object fixtures
+│   └── storage.ts     # Session state mocking utilities
+├── pages/             # Page Object Models (POM)
+│   ├── landing.page.ts
+│   ├── setup.page.ts
+│   ├── interview.page.ts
+│   └── results.page.ts
+├── support/           # Shared utilities
+│   └── commands.ts    # Navigation, storage, API mocking helpers
+└── *.spec.ts          # Test specifications (8 files)
+```
+
+### E2E Test Patterns
+
+**Page Object Model (POM)**: All page interactions encapsulated in page objects
+```typescript
+// Import page objects via fixtures
+import { test, expect } from "../fixtures/test-base";
+
+test("complete interview flow", async ({ landingPage, setupPage, interviewPage }) => {
+  await landingPage.goto();
+  await landingPage.clickGetStarted();
+  // Page objects handle selectors and interactions
+});
+```
+
+**Semantic Selectors First**: Use `getByRole`, `getByText` before `data-testid`
+```typescript
+// Preferred
+page.getByRole("button", { name: /continue/i })
+page.getByText(/select your provider/i)
+
+// When semantic selectors don't work
+page.getByTestId("provider-anthropic")
+```
+
+**Storage Fixtures**: Mock session state for specific test scenarios
+```typescript
+import { injectSessionState, createMidwaySession } from "../fixtures/storage";
+
+test.beforeEach(async ({ page }) => {
+  await injectSessionState(page, createMidwaySession());
+});
+```
+
+### Testing Commands
+```bash
+# Unit tests (Vitest)
+bun run test                    # Run all unit tests
+bun run test --watch            # Watch mode
+
+# E2E tests (Playwright)
+bun run test:e2e                # Run all E2E tests (headless)
+bunx playwright test --ui       # Interactive UI mode for debugging
+bunx playwright test --headed   # Run in visible browser
+bunx playwright test e2e/interview-flow.spec.ts  # Run specific test file
+
+# Other checks
+bun run typecheck               # TypeScript validation
+bun run lint                    # ESLint
+```
+
+### E2E Test Development
+
+**Running E2E tests requires the dev server**:
+```bash
+# Terminal 1: Start dev server
+bun run dev
+
+# Terminal 2: Run E2E tests
+bun run test:e2e
+```
+
+**Debugging E2E tests**:
+- Use `--ui` flag for interactive debugging with time-travel
+- Use `--headed` flag to watch tests run in browser
+- Add `await page.pause()` in tests to stop and inspect
+
+**Writing new E2E tests**:
+1. Create page object in `e2e/pages/` if testing new page
+2. Add `data-testid` attributes to components if semantic selectors insufficient
+3. Use fixtures from `test-base.ts` for page objects
+4. Follow existing test patterns for consistency
+
 ### Manual Testing
 Comprehensive manual E2E testing documented in `/docs`:
 - `full-interview-test-results.md`
 - `e2e-test-results.md`
 - `claude-agent-browser-test.md`
-
-### Testing Commands
-```bash
-bun run test              # Vitest unit tests
-bun run test:e2e          # Playwright (not yet implemented)
-bun run typecheck         # TypeScript validation
-bun run lint              # ESLint
-```
-
-### Roadmap
-E2E tests planned for Stage 2+. Infrastructure ready, just needs implementation.
 
 ---
 
@@ -418,10 +510,10 @@ bun run build
 
 ### Workflow Notes
 
-8. **Unit tests implemented, E2E tests pending**
+8. **Unit tests and E2E tests both implemented** ✅
    - Vitest unit tests cover interview questions, advisor store, classifier, and scoring
-   - Playwright E2E tests not yet implemented
-   - Manual E2E testing documented in `/docs`
+   - Playwright E2E tests cover all user flows (8 test suites)
+   - Run `bun run test` for unit tests, `bun run test:e2e` for E2E tests
 
 9. **API keys are sensitive**
    - Stored encrypted in IndexedDB
@@ -522,8 +614,9 @@ export const PROVIDERS = [..., newProvider];
 ### Missing Documentation
 - CONTRIBUTING.md (developer workflows)
 - DEPLOYMENT.md (production deployment guide)
-- TESTING.md (unit/E2E testing guide)
 - API.md (provider integration reference)
+
+**Note**: Testing documentation is now included in this file (see Testing section above).
 
 ---
 
@@ -531,7 +624,7 @@ export const PROVIDERS = [..., newProvider];
 
 ### Planned Features
 - [x] Unit tests (Vitest) ✅
-- [ ] E2E tests (Playwright)
+- [x] E2E tests (Playwright) ✅
 - [ ] Convex backend migration
 - [ ] User authentication (Clerk)
 - [ ] Cloud sync (Convex)
@@ -540,7 +633,6 @@ export const PROVIDERS = [..., newProvider];
 
 ### Technical Debt
 - Update planning docs status to "MVP Complete"
-- Implement E2E testing (Playwright)
 - Create deployment pipeline
 - Add monitoring/logging
 - Performance optimization
@@ -569,6 +661,8 @@ convex/schema.ts                        # Future backend schema
 ```bash
 bun run typecheck           # Must pass (strict mode)
 bun run lint                # Must pass (no warnings)
+bun run test                # Unit tests must pass
+bun run test:e2e            # E2E tests must pass
 bun run build               # Must succeed
 ```
 
@@ -586,9 +680,15 @@ bun run build               # Must succeed
 - Run `bun run typecheck` first
 - Check for TypeScript errors
 
-**Tests failing**:
+**Unit tests failing**:
 - Run `bun run test` to see test output
 - Check test files in `lib/**/__tests__/` directories
+
+**E2E tests failing**:
+- Ensure dev server is running (`bun run dev`)
+- Run `bunx playwright test --ui` for interactive debugging
+- Check test files in `packages/web/e2e/` directory
+- Use `--headed` flag to watch tests run in browser
 
 ---
 

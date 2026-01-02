@@ -19,6 +19,7 @@ export function SetupPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="min-h-screen bg-background flex items-center justify-center"
+      data-testid="setup-page"
     >
       <a
         href="#setup-content"
@@ -43,7 +44,7 @@ export function SetupPage() {
             animate={{ opacity: 1, y: 0 }}
             className="mt-6 text-center"
           >
-            <Button variant="outline" onClick={handleComplete}>
+            <Button variant="outline" onClick={handleComplete} data-testid="continue-interview-button">
               Continue to Interview
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
@@ -65,6 +66,7 @@ export function SetupPage() {
               size="sm"
               onClick={handleComplete}
               className="text-muted-foreground hover:text-foreground"
+              data-testid="skip-setup-button"
             >
               Skip for now
               <ArrowRight className="w-3 h-3 ml-1" />
