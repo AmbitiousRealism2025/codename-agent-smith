@@ -1,15 +1,15 @@
 # AGENT ADVISOR PWA - PROJECT KNOWLEDGE BASE
 
 **Updated:** 2026-01-01  
-**Version:** v1.0.0-mvp  
-**Branch:** dev  
-**Status:** MVP Complete
+**Version:** v1.1.0-dev  
+**Branch:** oc-dev  
+**Status:** Stage 2 In Progress
 
 ---
 
 ## OVERVIEW
 
-Progressive Web App guiding developers through AI agent configuration. 15-question interview → classification into 5 agent archetypes → planning document generation. Pure client-side (no backend required).
+Progressive Web App guiding developers through AI agent configuration. 15-question interview → classification into 5 agent archetypes → planning document generation. Supports local-first (IndexedDB) and cloud sync (Convex + Clerk auth).
 
 ---
 
@@ -17,30 +17,44 @@ Progressive Web App guiding developers through AI agent configuration. 15-questi
 
 ```
 ./
+├── convex/                      # Convex backend (serverless)
+│   ├── schema.ts                # Database tables (sessions, responses, documents, users)
+│   ├── auth.config.ts           # Clerk issuer configuration
+│   ├── sessions.ts              # Session CRUD + user-scoped queries
+│   ├── responses.ts             # Interview response storage
+│   ├── documents.ts             # Generated document storage
+│   └── users.ts                 # User profile + preferences
+│
 ├── packages/web/                # React PWA application
 │   ├── src/
 │   │   ├── components/
+│   │   │   ├── auth/            # AuthGuard, SaveToCloudButton
 │   │   │   ├── interview/       # QuestionCard, ProgressIndicator, StageIndicator
-│   │   │   ├── layout/          # MainLayout, Sidebar, Header, BottomNav
+│   │   │   ├── layout/          # MainLayout, Sidebar, Header, BottomNav, SyncIndicator
 │   │   │   ├── pages/           # LandingPage, AdvisorPage, TemplatesPage, SettingsPage
 │   │   │   ├── providers/       # ProviderSelector
+│   │   │   ├── sessions/        # SessionCard, SessionList, DeleteSessionDialog
+│   │   │   ├── settings/        # UserPreferences
 │   │   │   ├── export/          # DocumentExport
 │   │   │   └── ui/              # shadcn components + ThemeToggle
+│   │   ├── hooks/               # useNetworkStatus
 │   │   ├── lib/
 │   │   │   ├── interview/       # questions.ts (15 questions, 4 stages)
 │   │   │   ├── classification/  # classifier.ts (weighted scoring)
 │   │   │   ├── documentation/   # document-generator.ts (markdown output)
-│   │   │   ├── providers/       # provider abstraction layer
-│   │   │   └── storage/         # Dexie IndexedDB wrapper
-│   │   ├── pages/               # SetupPage, InterviewPage, ResultsPage
-│   │   ├── stores/              # Zustand (advisor-store, ui-store, provider-store)
+│   │   │   ├── providers/       # 5 provider adapters + registry
+│   │   │   ├── convex/          # Convex client setup
+│   │   │   └── storage/         # Dexie + Convex adapters, migration, sync
+│   │   ├── pages/               # SetupPage, InterviewPage, ResultsPage, ProfilePage, SignInPage, SignUpPage
+│   │   ├── stores/              # Zustand (advisor-store, ui-store, provider-store, sync-store)
 │   │   ├── templates/           # 5 agent archetype templates + sections
 │   │   ├── styles/              # globals.css (Catppuccin theme tokens)
 │   │   └── types/               # TypeScript interfaces
+│   ├── e2e/                     # Playwright E2E tests
 │   ├── public/icons/            # PWA icons (192, 512, maskable)
 │   ├── vite.config.ts           # Vite + PWA + service worker
 │   └── tailwind.config.ts       # Catppuccin colors, Satoshi fonts
-├── docs/                        # Planning documentation (historical)
+├── docs/                        # Planning documentation
 ├── AGENTS.md                    # This file
 ├── HANDOFF.md                   # Session continuation context
 └── README.md                    # Project overview
@@ -58,7 +72,10 @@ Progressive Web App guiding developers through AI agent configuration. 15-questi
 | Agent templates | `src/templates/` |
 | Theme colors | `src/styles/globals.css` |
 | State management | `src/stores/advisor-store.ts` |
-| IndexedDB schema | `src/lib/storage/db.ts` |
+| Local storage | `src/lib/storage/db.ts` (Dexie) |
+| Cloud storage | `src/lib/storage/convex-adapter.ts` |
+| Sync management | `src/stores/sync-store.ts` |
+| Auth guard | `src/components/auth/AuthGuard.tsx` |
 | PWA config | `vite.config.ts` |
 
 ---
@@ -78,7 +95,10 @@ Progressive Web App guiding developers through AI agent configuration. 15-questi
 - **Build:** Vite 6 + vite-plugin-pwa
 - **Styling:** TailwindCSS v3 + shadcn/ui
 - **State:** Zustand with persist middleware
-- **Storage:** IndexedDB via Dexie.js (Convex backend planned for Stage 2)
+- **Local Storage:** IndexedDB via Dexie.js
+- **Cloud Storage:** Convex (serverless backend)
+- **Auth:** Clerk (with Convex integration)
+- **Testing:** Vitest (unit) + Playwright (E2E)
 - **A11y:** axe-core (dev mode automated testing)
 
 ### Patterns
@@ -87,6 +107,8 @@ Progressive Web App guiding developers through AI agent configuration. 15-questi
 - Weighted classification with confidence scoring
 - Client-side document generation (no API required for core flow)
 - Provider abstraction layer for API calls
+- Storage adapter pattern (Dexie ↔ Convex)
+- Real-time sync with optimistic updates
 
 ### Accessibility
 - Skip-to-content links on all standalone pages
@@ -125,9 +147,13 @@ bun run typecheck        # TypeScript validation
 bun run build            # Production build with PWA
 bun run preview          # Preview production build
 
-# Future (configured but not implemented)
+# Testing
 bun run test             # Vitest unit tests
-bun run test:e2e         # Playwright E2E
+bun run test:e2e         # Playwright E2E tests
+
+# Convex (from repo root)
+bunx convex dev          # Start Convex dev server
+npx convex dev --once    # Deploy Convex functions once
 ```
 
 ---
@@ -143,29 +169,45 @@ bun run test:e2e         # Playwright E2E
 ```
 
 **Post-interview navigation:**
-- /advisor - Main dashboard
+- /advisor - Main dashboard + session history
 - /templates - Browse agent archetypes
-- /settings - Manage API providers
+- /settings - Manage API providers + cloud sync
+- /profile - User profile + preferences (authenticated)
 
 ---
 
 ## PROVIDERS
 
-| Provider | Status | Notes |
-|----------|--------|-------|
-| Anthropic | ✅ MVP | Direct Claude API |
-| OpenRouter | ✅ MVP | Multi-model gateway |
-| MiniMax | ✅ MVP | Alternative provider |
-| OpenAI | 🔮 Future | Stage 2 |
-| GLM | 🔮 Future | Stage 2 |
+| Provider | Models | Status |
+|----------|--------|--------|
+| Anthropic | Claude Sonnet 4, Claude 3.5 Sonnet/Haiku, Claude 3 Opus | ✅ |
+| OpenRouter | Multi-model gateway | ✅ |
+| MiniMax | ABAB models | ✅ |
+| OpenAI | GPT-4o, GPT-4o-mini, GPT-4-turbo, GPT-3.5-turbo, o1-preview, o1-mini | ✅ |
+| GLM | GLM-4-plus, GLM-4, GLM-4-air, GLM-4-flash, GLM-4-long | ✅ |
+
+---
+
+## CLOUD INFRASTRUCTURE
+
+### Convex
+- **Dashboard:** https://dashboard.convex.dev
+- **Tables:** sessions, responses, documents, users
+- **Auth:** Clerk JWT verification via `auth.config.ts`
+
+### Clerk
+- **Dashboard:** https://dashboard.clerk.com
+- **Components:** ClerkProvider, SignIn, SignUp, UserButton
+- **Integration:** ConvexProviderWithClerk in main.tsx
 
 ---
 
 ## NOTES
 
-- **Pure client-side (MVP):** No backend server required. All data in IndexedDB.
-- **Convex planned:** Stage 2 will add Convex for cloud sync, auth, and session persistence.
-- **Offline capable:** Core interview flow works without network.
+- **Local-first:** App works fully offline with IndexedDB. Cloud sync optional.
+- **Real-time sync:** Convex subscriptions update UI instantly across devices.
+- **Session continuity:** Resume interviews from any device when signed in.
+- **Network awareness:** SyncIndicator shows online/offline status with manual refresh.
 - **PWA installable:** Add to home screen on mobile/desktop.
 - **axe-core in dev:** Console logs a11y violations automatically.
-- **Theme toggle:** Available on all pages (floating button, top-right).
+- **Theme toggle:** Available on all pages (header, top-right).
