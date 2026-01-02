@@ -31,9 +31,9 @@ bun run lint
 bun run build
 bun run preview
 
-# Testing (configured but not yet implemented)
-bun run test              # Vitest unit tests
-bun run test:e2e          # Playwright E2E tests
+# Testing
+bun run test              # Vitest unit tests (implemented)
+bun run test:e2e          # Playwright E2E tests (not yet implemented)
 
 # Convex (planned for Stage 2, currently using Dexie/IndexedDB)
 bun run convex:dev        # Development mode
@@ -314,9 +314,19 @@ import { cn } from "@/lib/utils"
 ## Testing
 
 ### Current State
-**Unit Tests**: Vitest 2.1.0 configured - **ZERO tests implemented**
-**E2E Tests**: Playwright 1.48.0 configured - **ZERO tests implemented**
+**Unit Tests**: Vitest 2.1.0 - **Implemented** ✅
+**E2E Tests**: Playwright 1.48.0 configured - **Not yet implemented**
 **A11y Tests**: axe-core 4.11.0 active in dev mode
+
+### Implemented Test Suites
+Located in `packages/web/src/lib/`:
+
+| Test File | Coverage Area |
+|-----------|---------------|
+| `interview/__tests__/questions.test.ts` | All 15 interview questions - data integrity, structure, stages |
+| `interview/__tests__/advisor-store.test.ts` | Interview state machine, stage progression, responses |
+| `classification/__tests__/classifier.test.ts` | Scoring logic for 5 agent archetypes |
+| `classification/__tests__/scoring.test.ts` | Scoring utilities and weighting algorithms |
 
 ### Manual Testing
 Comprehensive manual E2E testing documented in `/docs`:
@@ -326,14 +336,14 @@ Comprehensive manual E2E testing documented in `/docs`:
 
 ### Testing Commands
 ```bash
-bun run test              # Vitest (no tests exist yet)
-bun run test:e2e          # Playwright (no tests exist yet)
-bun run typecheck         # TypeScript validation (use this!)
+bun run test              # Vitest unit tests
+bun run test:e2e          # Playwright (not yet implemented)
+bun run typecheck         # TypeScript validation
 bun run lint              # ESLint
 ```
 
 ### Roadmap
-Unit + E2E tests planned for Stage 2+. Infrastructure ready, just needs implementation.
+E2E tests planned for Stage 2+. Infrastructure ready, just needs implementation.
 
 ---
 
@@ -408,9 +418,9 @@ bun run build
 
 ### Workflow Notes
 
-8. **Zero automated tests**
-   - MVP complete but no test coverage
-   - Vitest + Playwright configured
+8. **Unit tests implemented, E2E tests pending**
+   - Vitest unit tests cover interview questions, advisor store, classifier, and scoring
+   - Playwright E2E tests not yet implemented
    - Manual E2E testing documented in `/docs`
 
 9. **API keys are sensitive**
@@ -520,7 +530,7 @@ export const PROVIDERS = [..., newProvider];
 ## Stage 2 Roadmap (Future)
 
 ### Planned Features
-- [ ] Unit tests (Vitest)
+- [x] Unit tests (Vitest) ✅
 - [ ] E2E tests (Playwright)
 - [ ] Convex backend migration
 - [ ] User authentication (Clerk)
@@ -530,7 +540,7 @@ export const PROVIDERS = [..., newProvider];
 
 ### Technical Debt
 - Update planning docs status to "MVP Complete"
-- Implement automated testing
+- Implement E2E testing (Playwright)
 - Create deployment pipeline
 - Add monitoring/logging
 - Performance optimization
@@ -576,9 +586,9 @@ bun run build               # Must succeed
 - Run `bun run typecheck` first
 - Check for TypeScript errors
 
-**Tests not found**:
-- Tests not implemented yet (Stage 2)
-- Use `bun run typecheck` for validation
+**Tests failing**:
+- Run `bun run test` to see test output
+- Check test files in `lib/**/__tests__/` directories
 
 ---
 
