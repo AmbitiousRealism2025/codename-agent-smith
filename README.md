@@ -1,7 +1,7 @@
 # Agent Advisor PWA
 
-**Status**: MVP Complete  
-**Version**: [v1.0.0-mvp](https://github.com/AmbitiousRealism2025/codename-agent-smith/releases/tag/v1.0.0-mvp)  
+**Status**: Stage 2 In Progress  
+**Version**: v1.1.0-dev  
 **Last Updated**: 2026-01-01
 
 ---
@@ -18,7 +18,7 @@ A Progressive Web App that guides developers through an interactive interview to
 - 15-question adaptive interview covering project type, team size, timeline, and constraints
 - 4 question types: text, single-choice, multi-select, boolean
 - Progress tracking with animated indicators
-- Session persistence via IndexedDB
+- Session persistence via IndexedDB (local) or Convex (cloud)
 
 ### Agent Classification
 - 5 agent archetypes: Solo Coder, Pair Programmer, Dev Team, Autonomous Squad, Human-in-the-Loop
@@ -34,7 +34,15 @@ A Progressive Web App that guides developers through an interactive interview to
 - Anthropic Claude (direct API)
 - OpenRouter (multi-model gateway)
 - MiniMax (alternative provider)
+- OpenAI (GPT-4o, o1 models) — *New in Stage 2*
+- GLM/Zhipu AI (GLM-4 models) — *New in Stage 2*
 - Secure API key storage in IndexedDB
+
+### Cloud Sync (Stage 2)
+- Convex backend for real-time data sync
+- Clerk authentication (sign-in/sign-up)
+- Cross-device session continuity
+- User preferences sync (theme, default provider)
 
 ### PWA
 - Installable on desktop and mobile
@@ -52,8 +60,11 @@ A Progressive Web App that guides developers through an interactive interview to
 | Styling | Tailwind CSS + shadcn/ui |
 | Theme | Catppuccin (custom warm blush light / Frappé dark) |
 | State | Zustand with persist middleware |
-| Storage | Dexie (IndexedDB) — Convex planned for Stage 2 |
+| Storage | Dexie (IndexedDB) + Convex (cloud) |
+| Auth | Clerk |
+| Backend | Convex (serverless) |
 | Runtime | Bun |
+| Testing | Vitest + Playwright |
 | A11y | axe-core (dev mode) |
 
 ---
@@ -75,6 +86,18 @@ bun run typecheck
 # Production build
 bun run build
 bun run preview
+
+# Run Convex dev server (from repo root)
+bunx convex dev
+```
+
+### Environment Variables
+
+Create `packages/web/.env.local`:
+
+```env
+VITE_CONVEX_URL=https://your-deployment.convex.cloud
+VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
 ```
 
 ---
@@ -82,29 +105,38 @@ bun run preview
 ## Project Structure
 
 ```
-packages/web/
-├── src/
-│   ├── components/
-│   │   ├── interview/     # QuestionCard, ProgressIndicator
-│   │   ├── layout/        # MainLayout, Sidebar, Header, BottomNav
-│   │   ├── pages/         # LandingPage, AdvisorPage, TemplatesPage
-│   │   ├── providers/     # ProviderSelector
-│   │   ├── export/        # DocumentExport
-│   │   └── ui/            # shadcn components + ThemeToggle
-│   ├── lib/
-│   │   ├── interview/     # questions.ts
-│   │   ├── classification/# classifier.ts
-│   │   ├── documentation/ # document-generator.ts
-│   │   ├── providers/     # provider abstraction
-│   │   └── storage/       # Dexie IndexedDB layer
-│   ├── pages/             # SetupPage, InterviewPage, ResultsPage
-│   ├── stores/            # Zustand stores
-│   ├── templates/         # Agent archetype templates
-│   ├── styles/            # globals.css (Catppuccin theme)
-│   └── types/             # TypeScript interfaces
-├── public/
-│   └── icons/             # PWA icons
-└── vite.config.ts         # Vite + PWA configuration
+├── convex/                      # Convex backend
+│   ├── schema.ts                # Database schema
+│   ├── sessions.ts              # Session CRUD
+│   ├── responses.ts             # Interview responses
+│   ├── documents.ts             # Generated documents
+│   └── users.ts                 # User preferences
+│
+├── packages/web/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── auth/            # AuthGuard, SaveToCloudButton
+│   │   │   ├── interview/       # QuestionCard, ProgressIndicator
+│   │   │   ├── layout/          # MainLayout, Header, SyncIndicator
+│   │   │   ├── pages/           # LandingPage, AdvisorPage
+│   │   │   ├── providers/       # ProviderSelector
+│   │   │   ├── sessions/        # SessionCard, SessionList
+│   │   │   ├── settings/        # UserPreferences
+│   │   │   ├── export/          # DocumentExport
+│   │   │   └── ui/              # shadcn components
+│   │   ├── hooks/               # useNetworkStatus
+│   │   ├── lib/
+│   │   │   ├── interview/       # questions.ts
+│   │   │   ├── classification/  # classifier.ts
+│   │   │   ├── documentation/   # document-generator.ts
+│   │   │   ├── providers/       # 5 provider adapters
+│   │   │   └── storage/         # Dexie + Convex adapters
+│   │   ├── pages/               # SetupPage, InterviewPage, ResultsPage, ProfilePage
+│   │   ├── stores/              # Zustand stores (advisor, ui, provider, sync)
+│   │   ├── templates/           # Agent archetype templates
+│   │   └── types/               # TypeScript interfaces
+│   ├── e2e/                     # Playwright E2E tests
+│   └── public/icons/            # PWA icons
 ```
 
 ---
@@ -114,6 +146,23 @@ packages/web/
 ```
 / (Landing) → /setup (Provider) → /interview (15 questions) → /results (Classification + Export)
 ```
+
+**Authenticated users:**
+- `/profile` — User profile and preferences
+- `/advisor` — Session history with resume/delete
+- `/settings` — API key management, cloud sync
+
+---
+
+## Providers
+
+| Provider | Models | Status |
+|----------|--------|--------|
+| Anthropic | Claude Sonnet 4, Claude 3.5 Sonnet/Haiku, Claude 3 Opus | ✅ |
+| OpenRouter | Multi-model gateway | ✅ |
+| MiniMax | ABAB models | ✅ |
+| OpenAI | GPT-4o, GPT-4o-mini, GPT-4-turbo, GPT-3.5-turbo, o1-preview, o1-mini | ✅ New |
+| GLM | GLM-4-plus, GLM-4, GLM-4-air, GLM-4-flash, GLM-4-long | ✅ New |
 
 ---
 
@@ -147,18 +196,26 @@ Typography: Satoshi (display) + General Sans (body)
 - [x] Interview flow (15 questions)
 - [x] Classification engine (5 archetypes)
 - [x] Document generation
-- [x] 3 provider integrations
+- [x] 3 provider integrations (Anthropic, OpenRouter, MiniMax)
 - [x] PWA installable + offline
 - [x] Accessibility audit
 - [x] Catppuccin theme
 
-### Future (Stage 2+)
-- [ ] Unit tests (Vitest configured)
-- [ ] E2E tests (Playwright)
-- [ ] Convex backend integration
-- [ ] User authentication (Clerk)
-- [ ] Cloud sync (Convex)
-- [ ] Additional providers (OpenAI, GLM)
+### Completed (Stage 2)
+- [x] Convex backend integration
+- [x] User authentication (Clerk)
+- [x] Cloud sync with real-time updates
+- [x] Session history UI
+- [x] User profile and preferences
+- [x] Sync status indicators
+- [x] OpenAI provider adapter
+- [x] GLM provider adapter
+- [x] E2E test infrastructure (Playwright)
+
+### In Progress
+- [ ] Cross-device sync testing
+- [ ] Export formats (PDF, HTML)
+- [ ] Interview enhancements
 - [ ] Multi-language support
 
 ---

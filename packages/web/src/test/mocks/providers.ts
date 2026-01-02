@@ -52,6 +52,8 @@ export const MOCK_API_KEYS = {
   anthropic: "sk-ant-mock-test-key-1234567890abcdef",
   openrouter: "sk-or-mock-test-key-1234567890abcdef",
   minimax: "mock-minimax-key-1234567890abcdef123",
+  openai: "sk-mock-openai-key-1234567890abcdef",
+  glm: "mock.glm-key-1234567890abcdef",
 } as const;
 
 /**
@@ -255,6 +257,94 @@ export const mockMinimaxAdapter: ProviderAdapter = createMockProvider({
 });
 
 /**
+ * Mock OpenAI adapter for testing
+ * Simulates OpenAI API key validation and request building
+ */
+export const mockOpenaiAdapter: ProviderAdapter = createMockProvider({
+  id: "openai",
+  name: "Mock OpenAI",
+  logo: "/providers/openai.svg",
+  description: "Mock OpenAI adapter for testing",
+  defaultModel: "gpt-4o",
+  authentication: "bearer",
+
+  validateApiKey(apiKey: string): ValidationResult {
+    const errors: string[] = [];
+
+    if (!apiKey) {
+      errors.push("API key is required");
+    } else if (!apiKey.startsWith("sk-")) {
+      errors.push('Invalid API key format. OpenAI keys start with "sk-"');
+    } else if (apiKey.length < 40) {
+      errors.push("API key appears too short");
+    }
+
+    return { valid: errors.length === 0, errors };
+  },
+
+  buildRequestConfig(prompt: string, model: string, apiKey: string): RequestConfig {
+    return {
+      url: "https://api.openai.com/v1/chat/completions",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: {
+        model,
+        max_tokens: 4096,
+        stream: true,
+        messages: [{ role: "user", content: prompt }],
+      },
+    };
+  },
+});
+
+/**
+ * Mock GLM adapter for testing
+ * Simulates Zhipu AI API key validation and request building
+ */
+export const mockGlmAdapter: ProviderAdapter = createMockProvider({
+  id: "glm",
+  name: "Mock GLM",
+  logo: "/providers/glm.svg",
+  description: "Mock GLM adapter for testing",
+  defaultModel: "glm-4",
+  authentication: "bearer",
+
+  validateApiKey(apiKey: string): ValidationResult {
+    const errors: string[] = [];
+
+    if (!apiKey) {
+      errors.push("API key is required");
+    } else if (apiKey.length < 20) {
+      errors.push("API key appears too short");
+    } else if (!apiKey.includes(".")) {
+      errors.push("Invalid API key format. Zhipu AI keys contain a period separator");
+    }
+
+    return { valid: errors.length === 0, errors };
+  },
+
+  buildRequestConfig(prompt: string, model: string, apiKey: string): RequestConfig {
+    return {
+      url: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: {
+        model,
+        max_tokens: 4096,
+        stream: true,
+        messages: [{ role: "user", content: prompt }],
+      },
+    };
+  },
+});
+
+/**
  * Mock provider registry for testing
  * Maps provider IDs to mock adapters
  */
@@ -262,6 +352,8 @@ export const MOCK_PROVIDER_REGISTRY: Record<ProviderId, ProviderAdapter> = {
   anthropic: mockAnthropicAdapter,
   openrouter: mockOpenrouterAdapter,
   minimax: mockMinimaxAdapter,
+  openai: mockOpenaiAdapter,
+  glm: mockGlmAdapter,
 };
 
 /**

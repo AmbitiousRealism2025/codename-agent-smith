@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom';
+import { SignedIn, SignedOut } from '@clerk/clerk-react';
 import { useAdvisorStore } from '@/stores/advisor-store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, RotateCcw, FileText } from 'lucide-react';
+import { ArrowRight, RotateCcw, FileText, History } from 'lucide-react';
+import { SessionList } from '@/components/sessions';
 
 export function AdvisorPage() {
   const navigate = useNavigate();
@@ -105,6 +107,26 @@ export function AdvisorPage() {
           </CardContent>
         </Card>
       </div>
+
+      <SignedIn>
+        <div className="mt-12">
+          <div className="flex items-center gap-2 mb-4">
+            <History className="h-5 w-5 text-muted-foreground" />
+            <h2 className="font-display text-xl font-semibold text-foreground">
+              Your Sessions
+            </h2>
+          </div>
+          <SessionList />
+        </div>
+      </SignedIn>
+
+      <SignedOut>
+        <div className="mt-12 rounded-lg border border-dashed border-border p-6 text-center">
+          <p className="text-sm text-muted-foreground">
+            Sign in to save your sessions and access them from any device.
+          </p>
+        </div>
+      </SignedOut>
     </div>
   );
 }

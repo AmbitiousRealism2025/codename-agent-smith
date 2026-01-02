@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import type {
   InterviewStage,
   ResponseValue,
@@ -8,6 +7,9 @@ import type {
   AgentCapabilities,
 } from '@/types/interview';
 import { INTERVIEW_QUESTIONS } from '@/lib/interview/questions';
+import { getAdapter } from '@/lib/storage';
+import type { SessionData } from '@/lib/storage/types';
+import { useSyncStore } from './sync-store';
 
 const STAGES: InterviewStage[] = ['discovery', 'requirements', 'architecture', 'output', 'complete'];
 
@@ -26,7 +28,7 @@ function getQuestionsForStage(stage: InterviewStage) {
   return INTERVIEW_QUESTIONS.filter((q) => q.stage === stage);
 }
 
-interface AdvisorStore {
+interface AdvisorState {
   sessionId: string | null;
   currentStage: InterviewStage;
   currentQuestionIndex: number;
@@ -36,15 +38,20 @@ interface AdvisorStore {
   isComplete: boolean;
   isGenerating: boolean;
   startedAt: Date | null;
+  isLoading: boolean;
+  isSaving: boolean;
+  lastSyncedAt: Date | null;
+}
 
-  initSession: (sessionId?: string) => void;
+interface AdvisorActions {
+  initSession: (sessionId?: string) => Promise<void>;
+  loadSession: (sessionId?: string) => Promise<boolean>;
   recordResponse: (questionId: string, value: ResponseValue) => void;
   skipQuestion: () => void;
   goToPreviousQuestion: () => void;
   setRecommendations: (recs: AgentRecommendations) => void;
   resetInterview: () => void;
   setGenerating: (generating: boolean) => void;
-
   getCurrentQuestion: () => (typeof INTERVIEW_QUESTIONS)[number] | null;
   getProgress: () => {
     currentStage: InterviewStage;
@@ -56,189 +63,263 @@ interface AdvisorStore {
     percentage: number;
   };
   canGoBack: () => boolean;
+  _persistToStorage: () => Promise<void>;
 }
 
-export const useAdvisorStore = create<AdvisorStore>()(
-  persist(
-    (set, get) => ({
-      sessionId: null,
+type AdvisorStore = AdvisorState & AdvisorActions;
+
+const initialState: AdvisorState = {
+  sessionId: null,
+  currentStage: 'discovery',
+  currentQuestionIndex: 0,
+  responses: {},
+  requirements: {},
+  recommendations: null,
+  isComplete: false,
+  isGenerating: false,
+  startedAt: null,
+  isLoading: false,
+  isSaving: false,
+  lastSyncedAt: null,
+};
+
+function stateToSessionData(state: AdvisorState): SessionData | null {
+  if (!state.sessionId) return null;
+  return {
+    sessionId: state.sessionId,
+    currentStage: state.currentStage,
+    currentQuestionIndex: state.currentQuestionIndex,
+    responses: state.responses,
+    requirements: state.requirements,
+    recommendations: state.recommendations,
+    isComplete: state.isComplete,
+    startedAt: state.startedAt,
+    lastUpdatedAt: new Date(),
+  };
+}
+
+function sessionDataToState(session: SessionData): Partial<AdvisorState> {
+  return {
+    sessionId: session.sessionId,
+    currentStage: session.currentStage,
+    currentQuestionIndex: session.currentQuestionIndex,
+    responses: session.responses,
+    requirements: session.requirements,
+    recommendations: session.recommendations,
+    isComplete: session.isComplete,
+    startedAt: session.startedAt,
+    lastSyncedAt: session.lastUpdatedAt,
+  };
+}
+
+export const useAdvisorStore = create<AdvisorStore>()((set, get) => ({
+  ...initialState,
+
+  initSession: async (sessionId) => {
+    const newSessionId = sessionId ?? crypto.randomUUID();
+    const newState: Partial<AdvisorState> = {
+      sessionId: newSessionId,
       currentStage: 'discovery',
       currentQuestionIndex: 0,
       responses: {},
       requirements: {},
       recommendations: null,
       isComplete: false,
-      isGenerating: false,
-      startedAt: null,
+      startedAt: new Date(),
+      isLoading: false,
+      isSaving: false,
+    };
+    set(newState);
+    await get()._persistToStorage();
+  },
 
-      initSession: (sessionId) => {
+  loadSession: async (sessionId) => {
+    set({ isLoading: true });
+    const syncStore = useSyncStore.getState();
+    syncStore.setSyncing();
+
+    try {
+      const adapter = getAdapter();
+      const session = sessionId
+        ? await adapter.getSession(sessionId)
+        : await adapter.getLatestSession();
+
+      if (session) {
         set({
-          sessionId: sessionId ?? crypto.randomUUID(),
-          currentStage: 'discovery',
-          currentQuestionIndex: 0,
-          responses: {},
-          requirements: {},
-          recommendations: null,
-          isComplete: false,
-          startedAt: new Date(),
+          ...sessionDataToState(session),
+          isLoading: false,
         });
-      },
-
-      recordResponse: (questionId, value) => {
-        const state = get();
-        const newResponses = { ...state.responses, [questionId]: value };
-        const newRequirements = updateRequirementsFromResponse(
-          { ...state.requirements },
-          questionId,
-          value
-        );
-
-        const stageQuestions = getQuestionsForStage(state.currentStage);
-        const nextIndex = state.currentQuestionIndex + 1;
-
-        if (nextIndex >= stageQuestions.length) {
-          const currentStageIndex = STAGES.indexOf(state.currentStage);
-          const nextStage = STAGES[currentStageIndex + 1];
-
-          if (!nextStage || nextStage === 'complete') {
-            set({
-              responses: newResponses,
-              requirements: newRequirements,
-              currentStage: 'complete',
-              currentQuestionIndex: 0,
-              isComplete: true,
-            });
-          } else {
-            set({
-              responses: newResponses,
-              requirements: newRequirements,
-              currentStage: nextStage,
-              currentQuestionIndex: 0,
-            });
-          }
-        } else {
-          set({
-            responses: newResponses,
-            requirements: newRequirements,
-            currentQuestionIndex: nextIndex,
-          });
-        }
-      },
-
-      skipQuestion: () => {
-        const state = get();
-        const stageQuestions = getQuestionsForStage(state.currentStage);
-        const nextIndex = state.currentQuestionIndex + 1;
-
-        if (nextIndex >= stageQuestions.length) {
-          const currentStageIndex = STAGES.indexOf(state.currentStage);
-          const nextStage = STAGES[currentStageIndex + 1];
-
-          if (!nextStage || nextStage === 'complete') {
-            set({
-              currentStage: 'complete',
-              currentQuestionIndex: 0,
-              isComplete: true,
-            });
-          } else {
-            set({
-              currentStage: nextStage,
-              currentQuestionIndex: 0,
-            });
-          }
-        } else {
-          set({ currentQuestionIndex: nextIndex });
-        }
-      },
-
-      goToPreviousQuestion: () => {
-        const state = get();
-
-        if (state.currentQuestionIndex > 0) {
-          set({ currentQuestionIndex: state.currentQuestionIndex - 1 });
-          return;
-        }
-
-        const currentStageIndex = STAGES.indexOf(state.currentStage);
-        if (currentStageIndex > 0) {
-          const prevStage = STAGES[currentStageIndex - 1] as InterviewStage;
-          const prevStageQuestions = getQuestionsForStage(prevStage);
-          set({
-            currentStage: prevStage,
-            currentQuestionIndex: Math.max(0, prevStageQuestions.length - 1),
-            isComplete: false,
-          });
-        }
-      },
-
-      setRecommendations: (recs) => {
-        set({ recommendations: recs, isComplete: true });
-      },
-
-      resetInterview: () => {
-        set({
-          sessionId: null,
-          currentStage: 'discovery',
-          currentQuestionIndex: 0,
-          responses: {},
-          requirements: {},
-          recommendations: null,
-          isComplete: false,
-          isGenerating: false,
-          startedAt: null,
-        });
-      },
-
-      setGenerating: (generating) => set({ isGenerating: generating }),
-
-      getCurrentQuestion: () => {
-        const state = get();
-        if (state.isComplete) return null;
-
-        const stageQuestions = getQuestionsForStage(state.currentStage);
-        return stageQuestions[state.currentQuestionIndex] ?? null;
-      },
-
-      getProgress: () => {
-        const state = get();
-        const stageIndex = STAGES.indexOf(state.currentStage);
-        const stageQuestions = getQuestionsForStage(state.currentStage);
-        const totalAnswered = Object.keys(state.responses).length;
-
-        return {
-          currentStage: state.currentStage,
-          stageIndex,
-          questionInStage: state.currentQuestionIndex,
-          questionsInCurrentStage: stageQuestions.length,
-          totalAnswered,
-          totalQuestions: INTERVIEW_QUESTIONS.length,
-          percentage:
-            INTERVIEW_QUESTIONS.length > 0
-              ? Math.round((totalAnswered / INTERVIEW_QUESTIONS.length) * 100)
-              : 0,
-        };
-      },
-
-      canGoBack: () => {
-        const state = get();
-        return state.currentQuestionIndex > 0 || STAGES.indexOf(state.currentStage) > 0;
-      },
-    }),
-    {
-      name: 'advisor-session',
-      partialize: (state) => ({
-        sessionId: state.sessionId,
-        currentStage: state.currentStage,
-        currentQuestionIndex: state.currentQuestionIndex,
-        responses: state.responses,
-        requirements: state.requirements,
-        recommendations: state.recommendations,
-        isComplete: state.isComplete,
-        startedAt: state.startedAt,
-      }),
+        syncStore.setSynced();
+        return true;
+      }
+      set({ isLoading: false });
+      syncStore.setSynced();
+      return false;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load session';
+      syncStore.setError(errorMessage);
+      set({ isLoading: false });
+      return false;
     }
-  )
-);
+  },
+
+  recordResponse: (questionId, value) => {
+    const state = get();
+    const newResponses = { ...state.responses, [questionId]: value };
+    const newRequirements = updateRequirementsFromResponse(
+      { ...state.requirements },
+      questionId,
+      value
+    );
+
+    const stageQuestions = getQuestionsForStage(state.currentStage);
+    const nextIndex = state.currentQuestionIndex + 1;
+
+    if (nextIndex >= stageQuestions.length) {
+      const currentStageIndex = STAGES.indexOf(state.currentStage);
+      const nextStage = STAGES[currentStageIndex + 1];
+
+      if (!nextStage || nextStage === 'complete') {
+        set({
+          responses: newResponses,
+          requirements: newRequirements,
+          currentStage: 'complete',
+          currentQuestionIndex: 0,
+          isComplete: true,
+        });
+      } else {
+        set({
+          responses: newResponses,
+          requirements: newRequirements,
+          currentStage: nextStage,
+          currentQuestionIndex: 0,
+        });
+      }
+    } else {
+      set({
+        responses: newResponses,
+        requirements: newRequirements,
+        currentQuestionIndex: nextIndex,
+      });
+    }
+
+    get()._persistToStorage().catch(console.error);
+  },
+
+  skipQuestion: () => {
+    const state = get();
+    const stageQuestions = getQuestionsForStage(state.currentStage);
+    const nextIndex = state.currentQuestionIndex + 1;
+
+    if (nextIndex >= stageQuestions.length) {
+      const currentStageIndex = STAGES.indexOf(state.currentStage);
+      const nextStage = STAGES[currentStageIndex + 1];
+
+      if (!nextStage || nextStage === 'complete') {
+        set({
+          currentStage: 'complete',
+          currentQuestionIndex: 0,
+          isComplete: true,
+        });
+      } else {
+        set({
+          currentStage: nextStage,
+          currentQuestionIndex: 0,
+        });
+      }
+    } else {
+      set({ currentQuestionIndex: nextIndex });
+    }
+
+    get()._persistToStorage().catch(console.error);
+  },
+
+  goToPreviousQuestion: () => {
+    const state = get();
+
+    if (state.currentQuestionIndex > 0) {
+      set({ currentQuestionIndex: state.currentQuestionIndex - 1 });
+      return;
+    }
+
+    const currentStageIndex = STAGES.indexOf(state.currentStage);
+    if (currentStageIndex > 0) {
+      const prevStage = STAGES[currentStageIndex - 1] as InterviewStage;
+      const prevStageQuestions = getQuestionsForStage(prevStage);
+      set({
+        currentStage: prevStage,
+        currentQuestionIndex: Math.max(0, prevStageQuestions.length - 1),
+        isComplete: false,
+      });
+    }
+  },
+
+  setRecommendations: (recs) => {
+    set({ recommendations: recs, isComplete: true });
+    get()._persistToStorage().catch(console.error);
+  },
+
+  resetInterview: () => {
+    set(initialState);
+  },
+
+  setGenerating: (generating) => set({ isGenerating: generating }),
+
+  getCurrentQuestion: () => {
+    const state = get();
+    if (state.isComplete) return null;
+
+    const stageQuestions = getQuestionsForStage(state.currentStage);
+    return stageQuestions[state.currentQuestionIndex] ?? null;
+  },
+
+  getProgress: () => {
+    const state = get();
+    const stageIndex = STAGES.indexOf(state.currentStage);
+    const stageQuestions = getQuestionsForStage(state.currentStage);
+    const totalAnswered = Object.keys(state.responses).length;
+
+    return {
+      currentStage: state.currentStage,
+      stageIndex,
+      questionInStage: state.currentQuestionIndex,
+      questionsInCurrentStage: stageQuestions.length,
+      totalAnswered,
+      totalQuestions: INTERVIEW_QUESTIONS.length,
+      percentage:
+        INTERVIEW_QUESTIONS.length > 0
+          ? Math.round((totalAnswered / INTERVIEW_QUESTIONS.length) * 100)
+          : 0,
+    };
+  },
+
+  canGoBack: () => {
+    const state = get();
+    return state.currentQuestionIndex > 0 || STAGES.indexOf(state.currentStage) > 0;
+  },
+
+  _persistToStorage: async () => {
+    const state = get();
+    const sessionData = stateToSessionData(state);
+    if (!sessionData) return;
+
+    set({ isSaving: true });
+    const syncStore = useSyncStore.getState();
+    syncStore.setSyncing();
+
+    try {
+      const adapter = getAdapter();
+      await adapter.saveSession(sessionData);
+      set({ isSaving: false, lastSyncedAt: new Date() });
+      syncStore.setSynced();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save session';
+      syncStore.setError(errorMessage);
+      set({ isSaving: false });
+      throw error;
+    }
+  },
+}));
 
 function updateRequirementsFromResponse(
   requirements: Partial<AgentRequirements>,

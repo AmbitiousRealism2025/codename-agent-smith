@@ -142,14 +142,24 @@ function createStorageMock(): Storage {
   };
 }
 
+/**
+ * Exported localStorage mock for use in tests
+ */
+export const localStorageMock = createStorageMock();
+
+/**
+ * Exported sessionStorage mock for use in tests
+ */
+export const sessionStorageMock = createStorageMock();
+
 // Apply storage mocks if not already present
 if (typeof window !== "undefined" && !window.localStorage.getItem) {
   Object.defineProperty(window, "localStorage", {
-    value: createStorageMock(),
+    value: localStorageMock,
     writable: true,
   });
   Object.defineProperty(window, "sessionStorage", {
-    value: createStorageMock(),
+    value: sessionStorageMock,
     writable: true,
   });
 }
@@ -160,8 +170,8 @@ if (typeof window !== "undefined" && !window.localStorage.getItem) {
  */
 beforeEach(() => {
   // Clear any localStorage/sessionStorage data from previous tests
-  localStorage.clear();
-  sessionStorage.clear();
+  localStorageMock.clear();
+  sessionStorageMock.clear();
 
   // Clear Zustand persisted stores
   clearPersistedStores();

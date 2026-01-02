@@ -64,9 +64,9 @@ describe('registry', () => {
       expect(Array.isArray(providers)).toBe(true);
     });
 
-    it('should return exactly 3 providers', () => {
+    it('should return exactly 5 providers', () => {
       const providers = getAllProviders();
-      expect(providers).toHaveLength(3);
+      expect(providers).toHaveLength(5);
     });
 
     it('should include anthropic adapter', () => {
@@ -109,9 +109,9 @@ describe('registry', () => {
       expect(Array.isArray(ids)).toBe(true);
     });
 
-    it('should return exactly 3 provider ids', () => {
+    it('should return exactly 5 provider ids', () => {
       const ids = getProviderIds();
-      expect(ids).toHaveLength(3);
+      expect(ids).toHaveLength(5);
     });
 
     it('should include anthropic id', () => {

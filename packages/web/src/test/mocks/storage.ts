@@ -129,6 +129,20 @@ export const MOCK_API_KEY_DATA: Record<StoredApiKey["provider"], StoredApiKey> =
     createdAt: new Date("2026-01-01T00:00:00Z"),
     lastUsedAt: null,
   },
+  openai: {
+    id: "openai",
+    provider: "openai",
+    encryptedKey: "encrypted-sk-openai-mock-key-1234567890",
+    createdAt: new Date("2026-01-01T00:00:00Z"),
+    lastUsedAt: null,
+  },
+  glm: {
+    id: "glm",
+    provider: "glm",
+    encryptedKey: "encrypted-glm.mock-key-1234567890",
+    createdAt: new Date("2026-01-01T00:00:00Z"),
+    lastUsedAt: null,
+  },
 };
 
 /**

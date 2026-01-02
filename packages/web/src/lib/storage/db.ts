@@ -5,6 +5,7 @@ import type {
   AgentRequirements,
   AgentRecommendations,
 } from '@/types/interview';
+import type { ProviderId } from '@/lib/providers/types';
 
 export interface StoredSession {
   id: string;
@@ -21,7 +22,7 @@ export interface StoredSession {
 
 export interface StoredApiKey {
   id: string;
-  provider: 'anthropic' | 'openrouter' | 'minimax';
+  provider: ProviderId;
   encryptedKey: string;
   createdAt: Date;
   lastUsedAt: Date | null;

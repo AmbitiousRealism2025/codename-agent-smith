@@ -2,7 +2,22 @@ import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
 export default defineSchema({
+  users: defineTable({
+    clerkId: v.string(),
+    email: v.optional(v.string()),
+    name: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
+    preferences: v.object({
+      theme: v.union(v.literal('light'), v.literal('dark'), v.literal('system')),
+      defaultProvider: v.optional(v.string()),
+    }),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_clerk_id', ['clerkId']),
+
   sessions: defineTable({
+    userId: v.optional(v.string()),
     sessionId: v.string(),
     currentStage: v.union(
       v.literal('discovery'),
@@ -19,7 +34,8 @@ export default defineSchema({
     lastUpdatedAt: v.number(),
   })
     .index('by_session_id', ['sessionId'])
-    .index('by_last_updated', ['lastUpdatedAt']),
+    .index('by_last_updated', ['lastUpdatedAt'])
+    .index('by_user', ['userId']),
 
   responses: defineTable({
     sessionId: v.string(),

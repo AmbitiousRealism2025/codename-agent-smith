@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { PlanningDocumentGenerator } from '@/lib/documentation/document-generator';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, Copy, Check, FileText } from 'lucide-react';
+import { Copy, Check, FileText } from 'lucide-react';
+import { ExportFormatSelector } from './ExportFormatSelector';
+import { exportAsHtml, exportAsPdf, downloadBlob, generateFilename, type ExportFormat } from '@/lib/export';
 import type { AgentRequirements, AgentRecommendations } from '@/types/agent';
 
 interface DocumentExportProps {
@@ -19,6 +21,7 @@ export function DocumentExport({
   recommendations,
 }: DocumentExportProps) {
   const [copied, setCopied] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const generator = new PlanningDocumentGenerator();
   const document = generator.generate({
@@ -36,14 +39,29 @@ export function DocumentExport({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDownload = () => {
-    const blob = new Blob([document], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = window.document.createElement('a');
-    a.href = url;
-    a.download = `${agentName.toLowerCase().replace(/\s+/g, '-')}-planning-doc.md`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleExport = async (format: ExportFormat) => {
+    setIsExporting(true);
+    try {
+      switch (format) {
+        case 'markdown': {
+          const blob = new Blob([document], { type: 'text/markdown' });
+          downloadBlob(blob, generateFilename(agentName, 'markdown'));
+          break;
+        }
+        case 'html': {
+          await exportAsHtml(document, agentName);
+          break;
+        }
+        case 'pdf': {
+          await exportAsPdf(document, agentName);
+          break;
+        }
+      }
+    } catch (error) {
+      console.error(`Export failed:`, error);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -67,10 +85,7 @@ export function DocumentExport({
             )}
             {copied ? 'Copied!' : 'Copy to Clipboard'}
           </Button>
-          <Button onClick={handleDownload}>
-            <Download className="h-4 w-4" />
-            Download as Markdown
-          </Button>
+          <ExportFormatSelector onSelect={handleExport} isExporting={isExporting} />
         </div>
       </CardContent>
     </Card>
