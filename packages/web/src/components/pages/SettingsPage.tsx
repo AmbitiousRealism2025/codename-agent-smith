@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, Key, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { Settings, Key, Trash2, CheckCircle, XCircle, Cloud, Database } from 'lucide-react';
 import { useProviderStore } from '@/stores/provider-store';
 import { getAllProviders } from '@/lib/providers';
-import { getApiKey, deleteApiKey } from '@/lib/storage';
+import { getApiKey, deleteApiKey, detectLocalData, MigrationDialog, type LocalDataInfo } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { ProviderId, ProviderAdapter } from '@/lib/providers';
@@ -18,26 +18,32 @@ export function SettingsPage() {
   const { selectedProvider, selectedModel } = useProviderStore();
   const [providerKeyStatuses, setProviderKeyStatuses] = useState<ProviderKeyStatus[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [localDataInfo, setLocalDataInfo] = useState<LocalDataInfo | null>(null);
+  const [migrationDialogOpen, setMigrationDialogOpen] = useState(false);
 
   const currentProvider = getAllProviders().find((p) => p.id === selectedProvider);
 
   useEffect(() => {
-    async function loadKeyStatuses() {
+    async function loadData() {
       setIsLoading(true);
       const providers = getAllProviders();
-      const statuses = await Promise.all(
-        providers.map(async (provider) => {
-          const key = await getApiKey(provider.id as ProviderId);
-          return {
-            provider,
-            hasSavedKey: !!key,
-          };
-        })
-      );
+      const [statuses, localInfo] = await Promise.all([
+        Promise.all(
+          providers.map(async (provider) => {
+            const key = await getApiKey(provider.id as ProviderId);
+            return {
+              provider,
+              hasSavedKey: !!key,
+            };
+          })
+        ),
+        detectLocalData(),
+      ]);
       setProviderKeyStatuses(statuses);
+      setLocalDataInfo(localInfo);
       setIsLoading(false);
     }
-    loadKeyStatuses();
+    loadData();
   }, []);
 
   const handleRemoveKey = async (providerId: ProviderId) => {
@@ -154,6 +160,37 @@ export function SettingsPage() {
 
         <Card>
           <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Cloud className="h-5 w-5" />
+              Cloud Sync
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-start gap-3 rounded-lg border border-border bg-background/50 p-4">
+                <Database className="h-5 w-5 mt-0.5 text-muted-foreground" />
+                <div className="space-y-1">
+                  <p className="font-medium">
+                    {localDataInfo?.sessionCount ?? 0} local session{(localDataInfo?.sessionCount ?? 0) !== 1 ? 's' : ''}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Migrate your local sessions to the cloud to sync across devices.
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={() => setMigrationDialogOpen(true)}
+                disabled={!localDataInfo || localDataInfo.sessionCount === 0}
+              >
+                <Cloud className="h-4 w-4" />
+                Migrate to Cloud
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>About</CardTitle>
           </CardHeader>
           <CardContent>
@@ -171,6 +208,8 @@ export function SettingsPage() {
           </CardContent>
         </Card>
       </div>
+
+      <MigrationDialog open={migrationDialogOpen} onOpenChange={setMigrationDialogOpen} />
     </div>
   );
 }

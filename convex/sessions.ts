@@ -8,8 +8,10 @@ export const create = mutation({
     selectedModel: v.string(),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
     const now = Date.now();
     return await ctx.db.insert('sessions', {
+      userId: identity?.subject,
       sessionId: args.sessionId,
       currentStage: 'discovery',
       currentQuestionIndex: 0,
@@ -72,6 +74,35 @@ export const list = query({
       .withIndex('by_last_updated')
       .order('desc')
       .take(20);
+  },
+});
+
+export const listForCurrentUser = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      return [];
+    }
+    return await ctx.db
+      .query('sessions')
+      .withIndex('by_user', (q) => q.eq('userId', identity.subject))
+      .order('desc')
+      .take(20);
+  },
+});
+
+export const getCurrentUser = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    return {
+      clerkId: identity.subject,
+      email: identity.email,
+      name: identity.name,
+      pictureUrl: identity.pictureUrl,
+    };
   },
 });
 

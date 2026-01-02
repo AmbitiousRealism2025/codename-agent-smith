@@ -1,143 +1,200 @@
 # Agent Advisor PWA - Session Handoff Document
 
-**Last Updated**: 2026-01-01
-**Status**: MVP NEARLY COMPLETE - Ready for final review
+**Last Updated**: 2026-01-01  
+**Status**: Stage 2 In Progress (Tasks 010-027 Complete)
 
 ---
 
 ## Project Location
-`/Users/ambrealismwork/Desktop/Coding-Projects/codename-agent-smith/packages/web`
+`/Users/ambrealismwork/Desktop/Coding-Projects/codename-agent-smith`
 
-## Current Status: MVP 95% COMPLETE
-
-### Completed This Session
-- ✅ Mobile bottom navigation bar (Interview, Templates, Settings)
-- ✅ Catppuccin color theme (Mocha dark / Latte light with custom tweaks)
-- ✅ Theme toggle on all standalone pages
-- ✅ Comprehensive accessibility audit and fixes
-- ✅ Skip-to-content links, focus states, ARIA labels
-- ✅ PWA icons (SVG) and build configuration
-
-### Previously Completed
-- ✅ Full interview flow (15 questions, 4 stages)
-- ✅ Classification engine with 5 agent templates
-- ✅ Document generation (PlanningDocumentGenerator)
-- ✅ Provider selector (Anthropic, OpenRouter, MiniMax)
-- ✅ Skip setup option for testing
-- ✅ Bug fixes (boolean validation, dialog click-outside)
-- ✅ E2E testing (manual, documented in docs/)
-- ✅ PWA configured (vite-plugin-pwa, service worker)
-- ✅ Offline data persistence (Dexie/IndexedDB)
+## Current Branch
+`oc-dev` - ahead of main (not pushed)
 
 ---
 
-## Commits Ready to Push (7 total)
+## Stage 2 Progress
+
+### Completed
+
+| Task | Description | Status |
+|------|-------------|--------|
+| Mini-task | Agent Smith logo on landing page | ✅ |
+| 010 | CI/CD GitHub Actions workflow | ✅ |
+| 011 | Convex project setup + provider | ✅ |
+| 012 | Convex CRUD functions (sessions, responses, documents) | ✅ |
+| 013 | Storage adapter abstraction (Dexie + Convex adapters) | ✅ |
+| 014 | Migrate Zustand stores to StorageAdapter | ✅ |
+| 015 | Data migration tool (IndexedDB → Convex) | ✅ |
+| 016 | Real-time sync with SyncIndicator | ✅ |
+| 017 | Clerk setup with ClerkProvider | ✅ |
+| 018 | Auth UI (SignInPage, SignUpPage, Header auth) | ✅ |
+| 019 | Protected routes (AuthGuard, SaveToCloudButton) | ✅ |
+| 020 | Connect Clerk to Convex (ConvexProviderWithClerk) | ✅ |
+| 021 | User Profile & Preferences | ✅ |
+| 022 | Session History UI | ✅ |
+| 023 | Cross-Device Sync Testing | ⏭️ Manual testing |
+| 024 | Sync Status & Indicators | ✅ |
+| 025 | OpenAI Provider Adapter | ✅ |
+| 026 | GLM Provider Adapter | ✅ |
+| 027 | Provider Registry Update | ✅ |
+
+### Next Up
+- **Task 023**: Cross-Device Sync Testing (manual testing required)
+- **Tasks 028-032**: E2E tests, interview enhancements, export improvements
+
+---
+
+## Key Files Created/Modified
 
 ```
-d95076d Improve accessibility across all pages
-e6bbaa7 Add theme toggle to all pages and customize Catppuccin colors
-e008561 Switch to Catppuccin color theme
-865df47 Add mobile bottom navigation bar
-7e8f544 Add PWA icons and fix build configuration
-5c6444a Fix boolean question validation
-19c3e8a Add session-aware pages, template modals, skip setup, dialog fix
+.github/workflows/test.yml           # CI workflow
+
+convex/
+├── auth.config.ts                   # Clerk issuer config
+├── schema.ts                        # Sessions + Users tables
+├── sessions.ts                      # Session CRUD + user-scoped queries
+├── responses.ts                     # Response CRUD
+├── documents.ts                     # Document CRUD
+├── users.ts                         # User profile + preferences
+
+packages/web/src/
+├── main.tsx                         # ClerkProvider + ConvexProviderWithClerk
+├── App.tsx                          # Routes including /profile, /sign-in, /sign-up
+├── hooks/
+│   └── useNetworkStatus.ts          # Online/offline detection hook
+├── lib/
+│   ├── convex/client.ts             # Convex client
+│   ├── providers/
+│   │   ├── types.ts                 # ProviderId now includes openai, glm
+│   │   ├── registry.ts              # All 5 providers registered
+│   │   ├── openai-adapter.ts        # OpenAI adapter (GPT-4o, o1, etc)
+│   │   └── glm-adapter.ts           # GLM/Zhipu adapter (GLM-4 models)
+│   └── storage/
+│       ├── types.ts                 # StorageAdapter interface
+│       ├── db.ts                    # Uses ProviderId type
+│       ├── dexie-adapter.ts         # Local storage
+│       ├── convex-adapter.ts        # Cloud storage
+│       ├── adapter-factory.ts       # Adapter switching
+│       ├── migration.ts             # Data migration logic
+│       ├── MigrationDialog.tsx      # Migration UI
+│       ├── realtime-sync.ts         # Real-time sync hook
+│       └── conflict-resolver.ts     # Last-write-wins
+├── stores/
+│   ├── advisor-store.ts             # Uses StorageAdapter
+│   └── sync-store.ts                # Sync state + network awareness
+├── pages/
+│   ├── SignInPage.tsx               # Clerk SignIn
+│   ├── SignUpPage.tsx               # Clerk SignUp
+│   └── ProfilePage.tsx              # User profile
+├── components/
+│   ├── auth/
+│   │   ├── AuthGuard.tsx            # Protected route wrapper
+│   │   └── SaveToCloudButton.tsx    # Sign-in prompt for saving
+│   ├── layout/
+│   │   ├── Header.tsx               # Auth buttons, profile link
+│   │   └── SyncIndicator.tsx        # Enhanced with network + manual sync
+│   ├── sessions/
+│   │   ├── SessionCard.tsx          # Session display card
+│   │   ├── SessionList.tsx          # Real-time session list
+│   │   ├── DeleteSessionDialog.tsx  # Delete confirmation
+│   │   ├── EmptySessionState.tsx    # Empty state
+│   │   └── index.ts                 # Barrel export
+│   └── settings/
+│       └── UserPreferences.tsx      # Theme + provider prefs
 ```
 
 ---
 
-## Routes
+## Environment Setup
 
-| Path | Component | Status |
-|------|-----------|--------|
-| `/` | LandingPage | ✅ Theme toggle, skip link |
-| `/setup` | SetupPage | ✅ Skip option, theme toggle |
-| `/interview` | InterviewPage | ✅ 15-question flow |
-| `/results` | ResultsPage | ✅ Classification + export |
-| `/advisor` | AdvisorPage | ✅ Session-aware |
-| `/templates` | TemplatesPage | ✅ Filtering, modals |
-| `/settings` | SettingsPage | ✅ Provider management |
+1. **Convex dev server** (run from repo root):
+   ```bash
+   bunx convex dev
+   ```
 
----
+2. **Environment file** at `packages/web/.env.local`:
+   ```
+   VITE_CONVEX_URL=https://standing-hamster-34.convex.cloud
+   VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
+   ```
 
-## Theme Configuration
-
-**Catppuccin-based** (reference: https://catppuccin.com/palette/)
-
-| Mode | Background | Primary | Accent |
-|------|------------|---------|--------|
-| Light | Crust #dce0e8 | Peach #fe640b | Peach |
-| Dark | Frappé Mantle hsl(231,19%,20%) | Teal #94e2d5 | Teal |
-
----
-
-## Known Gaps (Post-MVP)
-
-| Feature | Status | Priority |
-|---------|--------|----------|
-| Unit tests | 0 files (Vitest ready) | Post-MVP |
-| Offline UI indicator | Not implemented | Nice-to-have |
-| SSE streaming | Not needed (client-side) | N/A |
+3. **Dashboards**:
+   - Convex: https://dashboard.convex.dev/d/standing-hamster-34
+   - Clerk: https://dashboard.clerk.com (heroic-cricket-38)
 
 ---
 
 ## Commands
 
 ```bash
-cd /Users/ambrealismwork/Desktop/Coding-Projects/codename-agent-smith/packages/web
+cd packages/web
 
 bun install          # Install dependencies
 bun run typecheck    # Verify TypeScript
-bun run dev          # Start dev server at localhost:5173
+bun run dev          # Start dev server (localhost:5173)
 bun run build        # Production build with PWA
+
+# From repo root
+bunx convex dev      # Start Convex dev server
+npx convex dev --once # Deploy Convex functions once
 ```
 
 ---
 
-## Test Flow
+## Phase Plans
 
-1. Navigate to `localhost:5173`
-2. Click "Get Started" → `/setup`
-3. Click "Skip for now" → `/interview`
-4. Answer 15 questions → `/results`
-5. View recommendations, export document
+- `docs/stage-2-docs/PHASE_PLAN_TASKS_010-020.md` - CI/CD, Convex, Clerk (COMPLETE)
+- `docs/stage-2-docs/PHASE_PLAN_TASKS_021-032.md` - Profile, Sync, Providers, Features
 
----
+## Context Documents
 
-## Design Constraints (DO NOT CHANGE)
-
-- **Colors**: Catppuccin palette (Mocha/Latte variants)
-- **Fonts**: Satoshi (display) + General Sans (body)
-- **Runtime**: Bun (NOT npm/yarn)
-- **State**: Zustand stores with persist middleware
-- **Storage**: IndexedDB via Dexie
+- `docs/context/CONVEX_CONTEXT.md` - Convex patterns and examples
+- `docs/context/CLERK_CONVEX_CONTEXT.md` - Clerk + Convex auth integration
 
 ---
 
 ## Continuation Prompt
 
 ```
-Continue the Agent Advisor PWA at:
-/Users/ambrealismwork/Desktop/Coding-Projects/codename-agent-smith/packages/web
+Continue Stage 2 of Agent Advisor PWA.
 
-## Status: MVP 95% Complete
+LOCATION: /Users/ambrealismwork/Desktop/Coding-Projects/codename-agent-smith
+BRANCH: oc-dev
+BUILD: TypeScript passes, Convex deployed
 
-7 commits ready to push (not yet on remote):
-- Accessibility improvements
-- Catppuccin theme (dark: Teal primary, light: Peach primary)
-- Mobile bottom navigation
-- PWA icons and config
-- Bug fixes
+COMPLETED (Tasks 010-027):
+- CI/CD workflow (.github/workflows/test.yml)
+- Convex setup (ConvexProvider in main.tsx)
+- Convex CRUD (sessions, responses, documents, users)
+- Storage adapter abstraction (dexie-adapter, convex-adapter)
+- Zustand store migration to StorageAdapter
+- Data migration tool (MigrationDialog)
+- Real-time sync (SyncIndicator)
+- Clerk auth (ClerkProvider, SignIn/SignUp pages)
+- Protected routes (AuthGuard, SaveToCloudButton)
+- Clerk-Convex connection (ConvexProviderWithClerk)
+- User Profile & Preferences (ProfilePage, UserPreferences)
+- Session History UI (SessionCard, SessionList, DeleteSessionDialog)
+- Sync Status & Indicators (useNetworkStatus, enhanced SyncIndicator)
+- OpenAI Provider Adapter (openai-adapter.ts - GPT-4o, o1 models)
+- GLM Provider Adapter (glm-adapter.ts - GLM-4 models)
+- Provider Registry Update (5 total: Anthropic, OpenRouter, MiniMax, OpenAI, GLM)
 
-## Test the App
-bun run dev → localhost:5173
-Flow: / → Get Started → Skip setup → Interview (15 Qs) → Results
+SKIPPED:
+- Task 023: Cross-Device Sync Testing (requires manual testing)
 
-## Remaining
-- User has ONE more change before MVP complete
-- Then push commits and create PR
+NEXT (Phase I - Testing & Enhancements):
+- Task 028: E2E Testing
+- Task 029: Interview Enhancements
+- Task 030: Export Improvements
+- Task 031: Documentation
+- Task 032: Final Polish
 
-## Design
-- Catppuccin colors: https://catppuccin.com/palette/
-- Dark: Frappé Mantle bg, Teal buttons
-- Light: Latte Crust bg, Peach buttons
+CONVEX:
+- Dashboard: https://dashboard.convex.dev/d/standing-hamster-34
+- Clerk issuer: https://heroic-cricket-38.clerk.accounts.dev
+
+PHASE PLANS:
+- docs/stage-2-docs/PHASE_PLAN_TASKS_021-032.md
 ```

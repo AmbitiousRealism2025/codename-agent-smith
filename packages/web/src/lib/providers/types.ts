@@ -1,4 +1,4 @@
-export type ProviderId = 'anthropic' | 'openrouter' | 'minimax';
+export type ProviderId = 'anthropic' | 'openrouter' | 'minimax' | 'openai' | 'glm';
 
 export type AuthenticationType = 'apiKey' | 'jwt' | 'bearer';
 

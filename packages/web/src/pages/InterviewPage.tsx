@@ -62,6 +62,7 @@ export function InterviewPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         className="min-h-screen bg-background"
+        data-testid="interview-complete"
       >
         <div className="container mx-auto px-4 py-8 max-w-2xl">
           <Card>
@@ -86,7 +87,7 @@ export function InterviewPage() {
                 </ul>
               </div>
 
-              <Button size="lg" onClick={() => navigate('/results')}>
+              <Button size="lg" onClick={() => navigate('/results')} data-testid="generate-recommendations-button">
                 Generate Recommendations
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
@@ -99,7 +100,7 @@ export function InterviewPage() {
 
   if (!question) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center" data-testid="interview-loading">
         <p className="text-muted-foreground">Loading...</p>
       </div>
     );
@@ -110,6 +111,7 @@ export function InterviewPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="min-h-screen bg-background"
+      data-testid="interview-page"
     >
       <a
         href="#interview-content"
@@ -131,6 +133,7 @@ export function InterviewPage() {
                 size="sm"
                 onClick={goToPreviousQuestion}
                 className="mb-4"
+                data-testid="interview-back-button"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back

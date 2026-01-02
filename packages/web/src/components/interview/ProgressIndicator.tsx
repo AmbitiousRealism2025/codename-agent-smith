@@ -59,8 +59,8 @@ export function ProgressIndicator({
       </div>
 
       <div className="mt-4 text-center">
-        <p className="text-sm font-medium">{STAGE_LABELS[currentStage]}</p>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm font-medium" data-testid="current-stage-label">{STAGE_LABELS[currentStage]}</p>
+        <p className="text-sm text-muted-foreground" data-testid="question-count">
           {totalAnswered} of {totalQuestions} questions
         </p>
       </div>

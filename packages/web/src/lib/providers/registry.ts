@@ -2,11 +2,15 @@ import type { ProviderAdapter, ProviderId, ModelInfo } from './types';
 import { anthropicAdapter } from './anthropic-adapter';
 import { openrouterAdapter } from './openrouter-adapter';
 import { minimaxAdapter } from './minimax-adapter';
+import { openaiAdapter } from './openai-adapter';
+import { glmAdapter } from './glm-adapter';
 
 const PROVIDER_REGISTRY: Record<ProviderId, ProviderAdapter> = {
   anthropic: anthropicAdapter,
   openrouter: openrouterAdapter,
   minimax: minimaxAdapter,
+  openai: openaiAdapter,
+  glm: glmAdapter,
 };
 
 export function getProvider(id: ProviderId): ProviderAdapter {
