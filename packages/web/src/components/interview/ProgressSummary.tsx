@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAdvisorStore } from '@/stores/advisor-store';
-import { ClipboardList, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
+import { AgentClassifier } from '@/lib/classification/classifier';
+import { ALL_TEMPLATES, getTemplateById } from '@/templates';
+import { ClipboardList, CheckCircle2, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function ProgressSummary() {
@@ -10,6 +12,11 @@ export function ProgressSummary() {
   const answeredQuestions = useAdvisorStore((state) => state.getAnsweredQuestions());
   const navigateToQuestion = useAdvisorStore((state) => state.navigateToQuestion);
   const currentQuestion = useAdvisorStore((state) => state.getCurrentQuestion());
+  const requirements = useAdvisorStore((state) => state.requirements);
+
+  // Calculate partial archetype classification
+  const classifier = new AgentClassifier(ALL_TEMPLATES);
+  const { archetype, confidence } = classifier.getPartialArchetype(requirements);
 
   // Shared content component for both mobile and desktop
   const SummaryContent = () => {
@@ -49,6 +56,30 @@ export function ProgressSummary() {
           <p className="text-sm text-muted-foreground mb-4">
             {answeredQuestions.length} question{answeredQuestions.length !== 1 ? 's' : ''} answered
           </p>
+
+          {/* Archetype Indicator */}
+          {archetype !== 'unknown' && confidence > 0 && (
+            <div
+              className="mb-4 rounded-lg border border-primary/20 bg-primary/5 p-3"
+              data-testid="archetype-indicator"
+            >
+              <div className="flex items-start gap-2">
+                <Sparkles size={16} className="text-primary mt-0.5 flex-shrink-0" aria-hidden="true" />
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">
+                    Emerging Archetype
+                  </p>
+                  <p className="text-sm font-semibold text-foreground">
+                    {getTemplateById(archetype)?.name || archetype}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {Math.round(confidence * 100)}% confidence
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-2" data-testid="answered-questions-list">
             {answeredQuestions.map((question) => {
               const isCurrentQuestion = currentQuestion?.id === question.id;
