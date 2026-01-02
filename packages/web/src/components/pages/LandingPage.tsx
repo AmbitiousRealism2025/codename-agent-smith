@@ -1,6 +1,14 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+} from '@clerk/clerk-react';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { Button } from '@/components/ui/button';
 
 export function LandingPage() {
   return (
@@ -11,7 +19,41 @@ export function LandingPage() {
       >
         Skip to main actions
       </a>
-      <ThemeToggle />
+      <ThemeToggle className="left-4 right-auto" />
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        <SignedOut>
+          <SignInButton mode="modal">
+            <Button variant="outline" size="sm" className="bg-card">
+              Sign In
+            </Button>
+          </SignInButton>
+          <SignUpButton mode="modal">
+            <Button size="sm">
+              Sign Up
+            </Button>
+          </SignUpButton>
+        </SignedOut>
+        <SignedIn>
+          <Link
+            to="/advisor"
+            className="rounded-lg px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Dashboard
+          </Link>
+          <UserButton
+            appearance={{
+              elements: {
+                avatarBox: 'h-8 w-8',
+                userButtonPopoverCard: 'bg-card border border-border shadow-lg',
+                userButtonPopoverActionButton: 'hover:bg-muted',
+                userButtonPopoverActionButtonText: 'text-foreground',
+                userButtonPopoverFooter: 'hidden',
+              },
+            }}
+            afterSignOutUrl="/"
+          />
+        </SignedIn>
+      </div>
       <main className="text-center" role="main">
         <img
           src="/images/Agent-Smith-Logo-test.png"
