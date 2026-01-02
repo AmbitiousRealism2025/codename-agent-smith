@@ -74,3 +74,17 @@ export const list = query({
       .take(20);
   },
 });
+
+export const remove = mutation({
+  args: { sessionId: v.string() },
+  handler: async (ctx, args) => {
+    const session = await ctx.db
+      .query('sessions')
+      .withIndex('by_session_id', (q) => q.eq('sessionId', args.sessionId))
+      .first();
+
+    if (!session) throw new Error('Session not found');
+
+    await ctx.db.delete(session._id);
+  },
+});
