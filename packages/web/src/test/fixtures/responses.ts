@@ -1,5 +1,5 @@
 import type { Response, ResponseValue, InterviewStage } from '@/types/interview';
-import { INTERVIEW_QUESTIONS } from '@/lib/interview/questions';
+import { INTERVIEW_QUESTIONS, STAGE_ORDER } from '@/lib/interview/questions';
 
 /**
  * Factory function to create a response fixture
@@ -266,12 +266,11 @@ export function getResponsesForStage(stage: InterviewStage): Record<string, Resp
  * Get all responses up to and including a stage
  */
 export function getResponsesUpToStage(stage: InterviewStage): Record<string, ResponseValue> {
-  const stageOrder: InterviewStage[] = ['discovery', 'requirements', 'architecture', 'output', 'complete'];
-  const stageIndex = stageOrder.indexOf(stage);
+  const stageIndex = STAGE_ORDER.indexOf(stage);
   const responses: Record<string, ResponseValue> = {};
 
   for (let i = 0; i <= stageIndex; i++) {
-    const currentStage = stageOrder[i];
+    const currentStage = STAGE_ORDER[i];
     if (!currentStage || currentStage === 'complete') continue;
 
     const stageResponses = getResponsesForStage(currentStage);
