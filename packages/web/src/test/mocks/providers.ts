@@ -5,6 +5,7 @@
  * of classification, document generation, and provider-related functionality.
  */
 
+import { vi } from "vitest";
 import type {
   ProviderAdapter,
   ProviderId,
@@ -337,9 +338,6 @@ export function createSpyProvider(baseAdapter: ProviderAdapter = mockAnthropicAd
     },
   };
 }
-
-// Import vi for spy creation
-import { vi } from "vitest";
 
 /**
  * Creates a mock validation result

@@ -22,11 +22,11 @@ export default mergeConfig(
           'src/vite-env.d.ts',
         ],
         thresholds: {
-          // Global thresholds - relaxed since we're incrementally adding tests
-          statements: 0,
-          branches: 0,
-          functions: 0,
-          lines: 0,
+          // Global thresholds - set to 60% to prevent quality regression while incrementally adding tests
+          statements: 60,
+          branches: 60,
+          functions: 60,
+          lines: 60,
           // Per-directory thresholds for core business logic (90%+ required)
           'src/lib/interview/**/*.ts': {
             statements: 90,

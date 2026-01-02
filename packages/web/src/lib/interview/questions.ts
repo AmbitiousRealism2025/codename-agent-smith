@@ -1,4 +1,4 @@
-import type { InterviewQuestion } from './types';
+import type { InterviewQuestion, InterviewStage } from './types';
 
 export const INTERVIEW_QUESTIONS: InterviewQuestion[] = [
   // Discovery Stage
@@ -172,6 +172,11 @@ export const INTERVIEW_QUESTIONS: InterviewQuestion[] = [
     hint: 'Share any other context that might help configure the agent'
   }
 ];
+
+/**
+ * Stage order for the interview process
+ */
+export const STAGE_ORDER: InterviewStage[] = ['discovery', 'requirements', 'architecture', 'output', 'complete'];
 
 // Backward compatibility alias for tests
 export const QUESTIONS = INTERVIEW_QUESTIONS;
