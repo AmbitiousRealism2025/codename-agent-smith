@@ -12,6 +12,7 @@ import { ResultsPage } from '@/pages/ResultsPage';
 import { SignInPage } from '@/pages/SignInPage';
 import { SignUpPage } from '@/pages/SignUpPage';
 import { ProfilePage } from '@/pages/ProfilePage';
+import { SharedSessionPage } from '@/pages/SharedSessionPage';
 
 export function App() {
   return (
@@ -24,6 +25,7 @@ export function App() {
           <Route path="/setup" element={<SetupPage />} />
           <Route path="/interview" element={<InterviewPage />} />
           <Route path="/results" element={<ResultsPage />} />
+          <Route path="/share/:code" element={<SharedSessionPage />} />
           <Route element={<MainLayout />}>
             <Route path="/advisor" element={<AdvisorPage />} />
             <Route path="/templates" element={<TemplatesPage />} />

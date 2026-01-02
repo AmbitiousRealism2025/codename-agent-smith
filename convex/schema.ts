@@ -54,4 +54,18 @@ export default defineSchema({
   })
     .index('by_session', ['sessionId'])
     .index('by_created', ['createdAt']),
+
+  shares: defineTable({
+    sessionId: v.string(),
+    userId: v.string(),
+    shareCode: v.string(),
+    agentName: v.string(),
+    templateId: v.string(),
+    documentContent: v.string(),
+    expiresAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index('by_code', ['shareCode'])
+    .index('by_session', ['sessionId'])
+    .index('by_user', ['userId']),
 });
