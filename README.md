@@ -1,8 +1,8 @@
 # Agent Advisor PWA
 
-**Status**: Stage 2 In Progress  
-**Version**: v1.1.0-dev  
-**Last Updated**: 2026-01-01
+**Status**: Stage 2 Complete  
+**Version**: v1.1.0  
+**Last Updated**: 2026-01-02
 
 ---
 
@@ -106,23 +106,28 @@ VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
 
 ```
 ├── convex/                      # Convex backend
-│   ├── schema.ts                # Database schema
+│   ├── schema.ts                # Database schema (6 tables)
 │   ├── sessions.ts              # Session CRUD
 │   ├── responses.ts             # Interview responses
 │   ├── documents.ts             # Generated documents
-│   └── users.ts                 # User preferences
+│   ├── users.ts                 # User preferences
+│   ├── shares.ts                # Session sharing
+│   ├── templates.ts             # Custom templates
+│   └── analytics.ts             # User statistics
 │
 ├── packages/web/
 │   ├── src/
 │   │   ├── components/
+│   │   │   ├── analytics/       # AnalyticsPage, StatsCard, UsageChart
 │   │   │   ├── auth/            # AuthGuard, SaveToCloudButton
 │   │   │   ├── interview/       # QuestionCard, ProgressIndicator
 │   │   │   ├── layout/          # MainLayout, Header, SyncIndicator
 │   │   │   ├── pages/           # LandingPage, AdvisorPage
-│   │   │   ├── providers/       # ProviderSelector
+│   │   │   ├── providers/       # ProviderSelector, AdapterSwitcher
 │   │   │   ├── sessions/        # SessionCard, SessionList
 │   │   │   ├── settings/        # UserPreferences
-│   │   │   ├── export/          # DocumentExport
+│   │   │   ├── templates/       # TemplateEditor, SectionEditor
+│   │   │   ├── export/          # DocumentExport, ShareDialog
 │   │   │   └── ui/              # shadcn components
 │   │   ├── hooks/               # useNetworkStatus
 │   │   ├── lib/
@@ -130,12 +135,13 @@ VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
 │   │   │   ├── classification/  # classifier.ts
 │   │   │   ├── documentation/   # document-generator.ts
 │   │   │   ├── providers/       # 5 provider adapters
+│   │   │   ├── export/          # PDF/HTML export utilities
 │   │   │   └── storage/         # Dexie + Convex adapters
-│   │   ├── pages/               # SetupPage, InterviewPage, ResultsPage, ProfilePage
+│   │   ├── pages/               # SetupPage, InterviewPage, ResultsPage, ProfilePage, SharedSessionPage, TemplateEditorPage
 │   │   ├── stores/              # Zustand stores (advisor, ui, provider, sync)
 │   │   ├── templates/           # Agent archetype templates
 │   │   └── types/               # TypeScript interfaces
-│   ├── e2e/                     # Playwright E2E tests
+│   ├── e2e/                     # Playwright E2E tests (8 spec files)
 │   └── public/icons/            # PWA icons
 ```
 
@@ -151,6 +157,9 @@ VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
 - `/profile` — User profile and preferences
 - `/advisor` — Session history with resume/delete
 - `/settings` — API key management, cloud sync
+- `/analytics` — Personal session statistics
+- `/templates/edit/:id` — Create/edit custom templates
+- `/share/:code` — View shared sessions (public)
 
 ---
 
@@ -211,12 +220,18 @@ Typography: Satoshi (display) + General Sans (body)
 - [x] OpenAI provider adapter
 - [x] GLM provider adapter
 - [x] E2E test infrastructure (Playwright)
+- [x] Export formats (PDF, HTML)
+- [x] Session sharing (public links)
+- [x] Syntax highlighting (Shiki)
+- [x] Template customization UI
+- [x] Analytics dashboard
 
-### In Progress
-- [ ] Cross-device sync testing
-- [ ] Export formats (PDF, HTML)
-- [ ] Interview enhancements
-- [ ] Multi-language support
+### Stage 3 (Planned)
+- [ ] Multi-language support (i18n)
+- [ ] Team collaboration features
+- [ ] Billing integration (Stripe)
+- [ ] React 19 upgrade
+- [ ] Mobile app (React Native)
 
 ---
 

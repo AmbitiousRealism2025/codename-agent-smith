@@ -1,9 +1,10 @@
 # AGENT ADVISOR PWA - PROJECT KNOWLEDGE BASE
 
-**Updated:** 2026-01-01  
-**Version:** v1.1.0-dev  
+**Updated:** 2026-01-02  
+**Version:** v1.1.0  
 **Branch:** oc-dev  
-**Status:** Stage 2 In Progress
+**PR:** [#8](https://github.com/AmbitiousRealism2025/codename-agent-smith/pull/8)  
+**Status:** Stage 2 Complete
 
 ---
 
@@ -18,24 +19,29 @@ Progressive Web App guiding developers through AI agent configuration. 15-questi
 ```
 ./
 ├── convex/                      # Convex backend (serverless)
-│   ├── schema.ts                # Database tables (sessions, responses, documents, users)
+│   ├── schema.ts                # Database tables (6 tables)
 │   ├── auth.config.ts           # Clerk issuer configuration
 │   ├── sessions.ts              # Session CRUD + user-scoped queries
 │   ├── responses.ts             # Interview response storage
 │   ├── documents.ts             # Generated document storage
-│   └── users.ts                 # User profile + preferences
+│   ├── users.ts                 # User profile + preferences
+│   ├── shares.ts                # Session sharing (public links)
+│   ├── templates.ts             # Custom template storage
+│   └── analytics.ts             # User statistics aggregation
 │
 ├── packages/web/                # React PWA application
 │   ├── src/
 │   │   ├── components/
+│   │   │   ├── analytics/       # AnalyticsPage, StatsCard, UsageChart
 │   │   │   ├── auth/            # AuthGuard, SaveToCloudButton
 │   │   │   ├── interview/       # QuestionCard, ProgressIndicator, StageIndicator
 │   │   │   ├── layout/          # MainLayout, Sidebar, Header, BottomNav, SyncIndicator
 │   │   │   ├── pages/           # LandingPage, AdvisorPage, TemplatesPage, SettingsPage
-│   │   │   ├── providers/       # ProviderSelector
+│   │   │   ├── providers/       # ProviderSelector, AdapterSwitcher
 │   │   │   ├── sessions/        # SessionCard, SessionList, DeleteSessionDialog
 │   │   │   ├── settings/        # UserPreferences
-│   │   │   ├── export/          # DocumentExport
+│   │   │   ├── templates/       # TemplateEditor, SectionEditor
+│   │   │   ├── export/          # DocumentExport, ShareDialog
 │   │   │   └── ui/              # shadcn components + ThemeToggle
 │   │   ├── hooks/               # useNetworkStatus
 │   │   ├── lib/
@@ -44,17 +50,19 @@ Progressive Web App guiding developers through AI agent configuration. 15-questi
 │   │   │   ├── documentation/   # document-generator.ts (markdown output)
 │   │   │   ├── providers/       # 5 provider adapters + registry
 │   │   │   ├── convex/          # Convex client setup
+│   │   │   ├── export/          # PDF/HTML export utilities
 │   │   │   └── storage/         # Dexie + Convex adapters, migration, sync
-│   │   ├── pages/               # SetupPage, InterviewPage, ResultsPage, ProfilePage, SignInPage, SignUpPage
+│   │   ├── pages/               # SetupPage, InterviewPage, ResultsPage, ProfilePage, SignInPage, SignUpPage, SharedSessionPage, TemplateEditorPage
 │   │   ├── stores/              # Zustand (advisor-store, ui-store, provider-store, sync-store)
 │   │   ├── templates/           # 5 agent archetype templates + sections
 │   │   ├── styles/              # globals.css (Catppuccin theme tokens)
 │   │   └── types/               # TypeScript interfaces
-│   ├── e2e/                     # Playwright E2E tests
+│   ├── e2e/                     # Playwright E2E tests (8 spec files)
 │   ├── public/icons/            # PWA icons (192, 512, maskable)
 │   ├── vite.config.ts           # Vite + PWA + service worker
 │   └── tailwind.config.ts       # Catppuccin colors, Satoshi fonts
 ├── docs/                        # Planning documentation
+│   └── stage-2-docs/            # Stage 2 task documentation
 ├── AGENTS.md                    # This file
 ├── HANDOFF.md                   # Session continuation context
 └── README.md                    # Project overview
@@ -192,13 +200,33 @@ npx convex dev --once    # Deploy Convex functions once
 
 ### Convex
 - **Dashboard:** https://dashboard.convex.dev
-- **Tables:** sessions, responses, documents, users
+- **Tables:** sessions, responses, documents, users, shares, templates
 - **Auth:** Clerk JWT verification via `auth.config.ts`
 
 ### Clerk
 - **Dashboard:** https://dashboard.clerk.com
 - **Components:** ClerkProvider, SignIn, SignUp, UserButton
 - **Integration:** ConvexProviderWithClerk in main.tsx
+
+---
+
+## ROUTES
+
+| Route | Component | Auth | Description |
+|-------|-----------|------|-------------|
+| `/` | LandingPage | Public | Landing page |
+| `/setup` | SetupPage | Public | Provider selection (skippable) |
+| `/interview` | InterviewPage | Public | 15-question interview |
+| `/results` | ResultsPage | Public | Classification + document |
+| `/advisor` | AdvisorPage | Public | Dashboard + session history |
+| `/templates` | TemplatesPage | Public | Browse agent archetypes |
+| `/templates/edit/:id` | TemplateEditorPage | Protected | Template editor |
+| `/settings` | SettingsPage | Protected | API keys, cloud sync |
+| `/profile` | ProfilePage | Protected | User profile + preferences |
+| `/analytics` | AnalyticsPage | Protected | Personal statistics |
+| `/share/:code` | SharedSessionPage | Public | View shared session |
+| `/sign-in/*` | SignInPage | Public | Clerk sign-in |
+| `/sign-up/*` | SignUpPage | Public | Clerk sign-up |
 
 ---
 
@@ -211,3 +239,7 @@ npx convex dev --once    # Deploy Convex functions once
 - **PWA installable:** Add to home screen on mobile/desktop.
 - **axe-core in dev:** Console logs a11y violations automatically.
 - **Theme toggle:** Available on all pages (header, top-right).
+- **Session sharing:** Generate public links to share completed sessions (read-only).
+- **Template customization:** Fork built-in templates to create custom versions.
+- **Export formats:** Download documents as Markdown, PDF, or HTML.
+- **Analytics:** View personal session statistics and usage patterns.
