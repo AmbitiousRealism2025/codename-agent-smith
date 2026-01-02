@@ -4,6 +4,7 @@ import { ClerkProvider, useAuth } from '@clerk/clerk-react';
 import { ConvexProvider } from 'convex/react';
 import { ConvexProviderWithClerk } from 'convex/react-clerk';
 import { App } from './App';
+import { AdapterSwitcher } from './components/providers/AdapterSwitcher';
 import { convex } from './lib/convex/client';
 import './styles/fonts.css';
 import './styles/globals.css';
@@ -28,7 +29,9 @@ function AppWithProviders() {
     return (
       <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
         <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-          <App />
+          <AdapterSwitcher>
+            <App />
+          </AdapterSwitcher>
         </ConvexProviderWithClerk>
       </ClerkProvider>
     );
