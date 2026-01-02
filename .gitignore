@@ -10,6 +10,8 @@ bun.lockb
 coverage/
 *.lcov
 .nyc_output
+test-results/
+playwright-report/
 
 # Production
 build/
