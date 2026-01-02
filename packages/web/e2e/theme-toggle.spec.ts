@@ -207,7 +207,7 @@ test.describe("Theme Toggle - Persistence", () => {
     await themeToggle.click();
     await page.waitForTimeout(100);
 
-    let isDark = await hasDarkClass(page);
+    const isDark = await hasDarkClass(page);
     if (!isDark) {
       await themeToggle.click();
       await page.waitForTimeout(100);
@@ -242,7 +242,7 @@ test.describe("Theme Toggle - Persistence", () => {
     await themeToggle.click();
     await page.waitForTimeout(100);
 
-    let isDark = await hasDarkClass(page);
+    const isDark = await hasDarkClass(page);
     if (isDark) {
       await themeToggle.click();
       await page.waitForTimeout(100);
@@ -278,7 +278,7 @@ test.describe("Theme Toggle - Persistence", () => {
     await themeToggle.click();
     await page.waitForTimeout(100);
 
-    let isDark = await hasDarkClass(page);
+    const isDark = await hasDarkClass(page);
     if (!isDark) {
       await themeToggle.click();
       await page.waitForTimeout(100);
