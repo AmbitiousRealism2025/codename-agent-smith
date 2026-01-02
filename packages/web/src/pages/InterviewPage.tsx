@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useAdvisorStore } from '@/stores/advisor-store';
 import { QuestionCard } from '@/components/interview/QuestionCard';
 import { ProgressIndicator } from '@/components/interview/ProgressIndicator';
+import { ProgressSummary } from '@/components/interview/ProgressSummary';
 import { StageIndicator } from '@/components/interview/StageIndicator';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
@@ -125,41 +126,47 @@ export function InterviewPage() {
           <StageIndicator currentStage={progress.currentStage} />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
-          <div>
-            {canGoBack() && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={goToPreviousQuestion}
-                className="mb-4"
-                data-testid="interview-back-button"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-            )}
+        <div className="lg:flex lg:gap-8">
+          <ProgressSummary />
 
-            <QuestionCard
-              question={question}
-              value={currentValue}
-              onChange={setCurrentValue}
-              onSubmit={handleSubmit}
-              onSkip={!question.required ? handleSkip : undefined}
-            />
-          </div>
+          <div className="flex-1 min-w-0">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
+              <div>
+                {canGoBack() && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={goToPreviousQuestion}
+                    className="mb-4"
+                    data-testid="interview-back-button"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back
+                  </Button>
+                )}
 
-          <div className="lg:sticky lg:top-8 lg:self-start">
-            <Card>
-              <CardContent className="pt-6">
-                <ProgressIndicator
-                  percentage={progress.percentage}
-                  currentStage={progress.currentStage}
-                  totalAnswered={progress.totalAnswered}
-                  totalQuestions={progress.totalQuestions}
+                <QuestionCard
+                  question={question}
+                  value={currentValue}
+                  onChange={setCurrentValue}
+                  onSubmit={handleSubmit}
+                  onSkip={!question.required ? handleSkip : undefined}
                 />
-              </CardContent>
-            </Card>
+              </div>
+
+              <div className="lg:sticky lg:top-8 lg:self-start">
+                <Card>
+                  <CardContent className="pt-6">
+                    <ProgressIndicator
+                      percentage={progress.percentage}
+                      currentStage={progress.currentStage}
+                      totalAnswered={progress.totalAnswered}
+                      totalQuestions={progress.totalQuestions}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           </div>
         </div>
       </main>
