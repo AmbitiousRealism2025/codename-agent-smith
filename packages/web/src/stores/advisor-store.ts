@@ -63,6 +63,7 @@ interface AdvisorActions {
     percentage: number;
   };
   canGoBack: () => boolean;
+  getAnsweredQuestions: () => (typeof INTERVIEW_QUESTIONS)[number][];
   _persistToStorage: () => Promise<void>;
 }
 
@@ -296,6 +297,12 @@ export const useAdvisorStore = create<AdvisorStore>()((set, get) => ({
   canGoBack: () => {
     const state = get();
     return state.currentQuestionIndex > 0 || STAGES.indexOf(state.currentStage) > 0;
+  },
+
+  getAnsweredQuestions: () => {
+    const state = get();
+    const answeredQuestionIds = Object.keys(state.responses);
+    return INTERVIEW_QUESTIONS.filter((q) => answeredQuestionIds.includes(q.id));
   },
 
   _persistToStorage: async () => {
