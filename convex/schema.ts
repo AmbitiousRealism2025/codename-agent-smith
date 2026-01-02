@@ -68,4 +68,23 @@ export default defineSchema({
     .index('by_code', ['shareCode'])
     .index('by_session', ['sessionId'])
     .index('by_user', ['userId']),
+
+  templates: defineTable({
+    userId: v.string(),
+    name: v.string(),
+    description: v.string(),
+    basedOn: v.optional(v.string()),
+    capabilityTags: v.array(v.string()),
+    idealFor: v.array(v.string()),
+    documentSections: v.string(),
+    planningChecklist: v.array(v.string()),
+    architecturePatterns: v.array(v.string()),
+    riskConsiderations: v.array(v.string()),
+    successCriteria: v.array(v.string()),
+    implementationGuidance: v.array(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_user', ['userId'])
+    .index('by_name', ['userId', 'name']),
 });

@@ -1,11 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useQuery, useMutation } from 'convex/react';
+import { useUser } from '@clerk/clerk-react';
+import { api } from '../../../../../convex/_generated/api';
+import type { Id } from '../../../../../convex/_generated/dataModel';
 import { ALL_TEMPLATES, getTemplateById } from '@/templates';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { ArrowRight, Check, FileText, Code, BarChart3, Search, Zap } from 'lucide-react';
+import { ArrowRight, Check, FileText, Code, BarChart3, Search, Zap, Plus, GitFork, Pencil, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const TEMPLATE_ICONS: Record<string, React.ReactNode> = {
   'data-analyst': <BarChart3 className="w-8 h-8" />,
@@ -42,8 +47,13 @@ function getCapabilityColor(tag: string): string {
 
 export function TemplatesPage() {
   const navigate = useNavigate();
+  const { isSignedIn } = useUser();
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [filterTag, setFilterTag] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<Id<'templates'> | null>(null);
+
+  const customTemplates = useQuery(api.templates.listForCurrentUser);
+  const deleteTemplate = useMutation(api.templates.remove);
 
   const template = selectedTemplate ? getTemplateById(selectedTemplate) : null;
 
@@ -58,6 +68,23 @@ export function TemplatesPage() {
     navigate('/setup');
   };
 
+  const handleForkTemplate = (templateId: string) => {
+    navigate(`/templates/edit/new?fork=${templateId}`);
+    setSelectedTemplate(null);
+  };
+
+  const handleDeleteCustomTemplate = async (id: Id<'templates'>) => {
+    try {
+      setDeletingId(id);
+      await deleteTemplate({ id });
+      toast.success('Template deleted');
+    } catch {
+      toast.error('Failed to delete template');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className="animate-fade-in">
       <div className="flex items-center justify-between mb-6">
@@ -69,10 +96,18 @@ export function TemplatesPage() {
             Browse 5 specialized templates for different use cases. Each includes tools, prompts, and architecture patterns.
           </p>
         </div>
-        <Button onClick={() => navigate('/setup')}>
-          Custom Interview
-          <ArrowRight className="w-4 h-4 ml-2" />
-        </Button>
+        <div className="flex gap-2">
+          {isSignedIn && (
+            <Button variant="outline" onClick={() => navigate('/templates/edit/new')}>
+              <Plus className="w-4 h-4 mr-2" />
+              Create Template
+            </Button>
+          )}
+          <Button onClick={() => navigate('/setup')}>
+            Custom Interview
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2 mb-6">
@@ -140,6 +175,72 @@ export function TemplatesPage() {
         ))}
       </div>
 
+      {isSignedIn && customTemplates && customTemplates.length > 0 && (
+        <div className="mt-12">
+          <h2 className="font-display text-2xl font-bold text-foreground mb-4">
+            My Custom Templates
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {customTemplates.map((tmpl, index) => (
+              <motion.div
+                key={tmpl._id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <Card className="h-full flex flex-col">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">{tmpl.name}</CardTitle>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => navigate(`/templates/edit/${tmpl._id}`)}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive"
+                          onClick={() => handleDeleteCustomTemplate(tmpl._id)}
+                          disabled={deletingId === tmpl._id}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="flex-1 flex flex-col">
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                      {tmpl.description || 'No description'}
+                    </p>
+                    {tmpl.basedOn && (
+                      <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                        <GitFork className="w-3 h-3" />
+                        Based on: {tmpl.basedOn}
+                      </p>
+                    )}
+                    <div className="flex flex-wrap gap-1.5 mt-auto">
+                      {tmpl.capabilityTags.slice(0, 4).map((tag) => (
+                        <span
+                          key={tag}
+                          className={`px-2 py-0.5 text-xs rounded-full ${getCapabilityColor(tag)}`}
+                        >
+                          {tag.replace(/-/g, ' ')}
+                        </span>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <Dialog open={!!selectedTemplate} onOpenChange={() => setSelectedTemplate(null)}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           {template && (
@@ -204,7 +305,15 @@ export function TemplatesPage() {
                     Start Interview
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
-                  <Button variant="outline" onClick={() => setSelectedTemplate(null)}>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => handleForkTemplate(template.id)}
+                    title="Create a custom version of this template"
+                  >
+                    <GitFork className="w-4 h-4 mr-2" />
+                    Fork
+                  </Button>
+                  <Button variant="ghost" onClick={() => setSelectedTemplate(null)}>
                     Close
                   </Button>
                 </div>
