@@ -70,6 +70,93 @@ export class AgentClassifier {
   }
 
   /**
+   * Get partial archetype classification from incomplete requirements
+   * Used during interview to show emerging archetype direction
+   * @param partialRequirements - Incomplete agent requirements
+   * @returns Archetype ID and confidence score (0-1)
+   */
+  getPartialArchetype(
+    partialRequirements: Partial<AgentRequirements>
+  ): { archetype: string; confidence: number } {
+    // Handle empty input
+    if (!partialRequirements || Object.keys(partialRequirements).length === 0) {
+      return {
+        archetype: 'unknown',
+        confidence: 0
+      };
+    }
+
+    // If we have no templates, return unknown
+    if (this.templates.length === 0) {
+      return {
+        archetype: 'unknown',
+        confidence: 0
+      };
+    }
+
+    // Build a minimal requirements object with defaults
+    // This allows us to reuse the existing scoreTemplate logic
+    const minimalRequirements: AgentRequirements = {
+      name: partialRequirements.name || '',
+      description: partialRequirements.description || '',
+      primaryOutcome: partialRequirements.primaryOutcome || '',
+      targetAudience: partialRequirements.targetAudience || [],
+      interactionStyle: partialRequirements.interactionStyle || 'conversational',
+      deliveryChannels: partialRequirements.deliveryChannels || [],
+      successMetrics: partialRequirements.successMetrics || [],
+      capabilities: partialRequirements.capabilities || {
+        memory: 'none',
+        fileAccess: false,
+        webAccess: false,
+        codeExecution: false,
+        dataAnalysis: false,
+        toolIntegrations: []
+      },
+      constraints: partialRequirements.constraints,
+      preferredTechnologies: partialRequirements.preferredTechnologies,
+      environment: partialRequirements.environment,
+      additionalNotes: partialRequirements.additionalNotes
+    };
+
+    // Score all templates using existing logic
+    const scores = this.scoreAllTemplates(minimalRequirements);
+
+    // Get best match
+    const bestMatch = scores[0];
+    if (!bestMatch) {
+      return {
+        archetype: 'unknown',
+        confidence: 0
+      };
+    }
+
+    // Calculate confidence based on:
+    // 1. The score itself (normalized 0-100)
+    // 2. How much data we actually have
+    const dataCompletenessFactors = [
+      !!partialRequirements.primaryOutcome,
+      !!partialRequirements.interactionStyle,
+      !!partialRequirements.capabilities,
+      !!partialRequirements.targetAudience && partialRequirements.targetAudience.length > 0,
+      !!partialRequirements.name,
+      !!partialRequirements.description
+    ];
+
+    const dataCompleteness = dataCompletenessFactors.filter(Boolean).length / dataCompletenessFactors.length;
+
+    // Confidence is a weighted combination of:
+    // - 70% score-based confidence (how well the data matches)
+    // - 30% data completeness (how much data we have)
+    const scoreConfidence = bestMatch.score / 100; // Normalize to 0-1
+    const confidence = Number((scoreConfidence * 0.7 + dataCompleteness * 0.3).toFixed(2));
+
+    return {
+      archetype: bestMatch.templateId,
+      confidence
+    };
+  }
+
+  /**
    * Score a single template against requirements
    * @param template - Template to score
    * @param requirements - Requirements to match against
