@@ -78,24 +78,21 @@ test.describe("Interview Flow - Complete User Journey", () => {
     const q1Text = await interviewPage.getQuestionText();
     expect(q1Text).toContain("name of your agent");
     await interviewPage.enterText("Test Automation Agent");
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Q2: Primary Outcome (text input)
-    await interviewPage.waitForLoad();
     const q2Text = await interviewPage.getQuestionText();
     expect(q2Text).toContain("primary outcome");
     await interviewPage.enterText("Automate testing workflows for developers");
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Q3: Target Audience (multiselect)
-    await interviewPage.waitForLoad();
     const q3Text = await interviewPage.getQuestionText();
     expect(q3Text).toContain("target users");
     await interviewPage.selectMultiple(["Developers", "Data Scientists"]);
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Verify we moved to Requirements stage
-    await interviewPage.waitForLoad();
     expect(await interviewPage.getCurrentStage()).toBe("Requirements");
 
     // Verify session state was saved
@@ -113,41 +110,35 @@ test.describe("Interview Flow - Complete User Journey", () => {
 
     // Complete discovery stage first
     await interviewPage.enterText("Test Agent");
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
-    await interviewPage.waitForLoad();
     await interviewPage.enterText("Test primary goal");
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
-    await interviewPage.waitForLoad();
     await interviewPage.selectMultiple(["Developers"]);
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Now at Requirements stage
-    await interviewPage.waitForLoad();
 
     // Q4: Interaction Style (choice)
     const q4Text = await interviewPage.getQuestionText();
     expect(q4Text).toContain("interaction style");
     await interviewPage.selectChoice("task-focused");
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Q5: Delivery Channels (multiselect)
-    await interviewPage.waitForLoad();
     const q5Text = await interviewPage.getQuestionText();
     expect(q5Text).toContain("channels");
     await interviewPage.selectMultiple(["CLI", "IDE Extension"]);
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Q6: Success Metrics (multiselect)
-    await interviewPage.waitForLoad();
     const q6Text = await interviewPage.getQuestionText();
     expect(q6Text).toContain("success");
     await interviewPage.selectMultiple(["Task completion rate"]);
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Verify we moved to Architecture stage
-    await interviewPage.waitForLoad();
     expect(await interviewPage.getCurrentStage()).toBe("Architecture");
   });
 
@@ -160,75 +151,58 @@ test.describe("Interview Flow - Complete User Journey", () => {
 
     // Complete discovery and requirements stages quickly
     await interviewPage.enterText("Test Agent"); // Q1
-    await interviewPage.clickContinue();
-
-    await interviewPage.waitForLoad();
+    await interviewPage.clickContinueAndWait();
     await interviewPage.enterText("Test goal"); // Q2
-    await interviewPage.clickContinue();
-
-    await interviewPage.waitForLoad();
+    await interviewPage.clickContinueAndWait();
     await interviewPage.selectMultiple(["Developers"]); // Q3
-    await interviewPage.clickContinue();
-
-    await interviewPage.waitForLoad();
+    await interviewPage.clickContinueAndWait();
     await interviewPage.selectChoice("collaborative"); // Q4
-    await interviewPage.clickContinue();
-
-    await interviewPage.waitForLoad();
+    await interviewPage.clickContinueAndWait();
     await interviewPage.selectMultiple(["Web Application"]); // Q5
-    await interviewPage.clickContinue();
-
-    await interviewPage.waitForLoad();
+    await interviewPage.clickContinueAndWait();
     await interviewPage.selectMultiple(["User satisfaction scores"]); // Q6
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Now at Architecture stage
-    await interviewPage.waitForLoad();
     expect(await interviewPage.getCurrentStage()).toBe("Architecture");
 
     // Q7: Memory Needs (choice)
     const q7Text = await interviewPage.getQuestionText();
     expect(q7Text).toContain("memory");
     await interviewPage.selectChoice("short-term");
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Q8: File Access (boolean)
-    await interviewPage.waitForLoad();
     const q8Text = await interviewPage.getQuestionText();
     expect(q8Text).toContain("file");
     await interviewPage.selectYes();
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Q9: Web Access (boolean)
-    await interviewPage.waitForLoad();
     const q9Text = await interviewPage.getQuestionText();
     expect(q9Text).toContain("web");
     await interviewPage.selectYes();
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Q10: Code Execution (boolean)
-    await interviewPage.waitForLoad();
     const q10Text = await interviewPage.getQuestionText();
     expect(q10Text).toContain("code");
     await interviewPage.selectYes();
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Q11: Data Analysis (boolean)
-    await interviewPage.waitForLoad();
     const q11Text = await interviewPage.getQuestionText();
     expect(q11Text).toContain("data analysis");
     await interviewPage.selectNo();
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Q12: Tool Integrations (text - optional)
-    await interviewPage.waitForLoad();
     const q12Text = await interviewPage.getQuestionText();
     expect(q12Text).toContain("tools");
     await interviewPage.enterText("GitHub, Jira, Slack");
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Verify we moved to Output stage
-    await interviewPage.waitForLoad();
     expect(await interviewPage.getCurrentStage()).toBe("Output");
   });
 
@@ -245,91 +219,77 @@ test.describe("Interview Flow - Complete User Journey", () => {
 
     // Q1: Agent Name (text)
     await interviewPage.enterText("Full Test Agent");
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Q2: Primary Outcome (text)
-    await interviewPage.waitForLoad();
     await interviewPage.enterText("Comprehensive automation for all workflows");
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Q3: Target Audience (multiselect)
-    await interviewPage.waitForLoad();
     await interviewPage.selectMultiple(["Developers", "Product Managers"]);
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // =====================
     // REQUIREMENTS STAGE (Q4-Q6)
     // =====================
 
     // Q4: Interaction Style (choice)
-    await interviewPage.waitForLoad();
     await interviewPage.selectChoice("collaborative");
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Q5: Delivery Channels (multiselect)
-    await interviewPage.waitForLoad();
     await interviewPage.selectMultiple(["CLI", "Web Application", "API"]);
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Q6: Success Metrics (multiselect)
-    await interviewPage.waitForLoad();
     await interviewPage.selectMultiple([
       "Task completion rate",
       "User satisfaction scores",
       "Response accuracy",
     ]);
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // =====================
     // ARCHITECTURE STAGE (Q7-Q12)
     // =====================
 
     // Q7: Memory Needs (choice)
-    await interviewPage.waitForLoad();
     await interviewPage.selectChoice("long-term");
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Q8: File Access (boolean)
-    await interviewPage.waitForLoad();
     await interviewPage.selectYes();
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Q9: Web Access (boolean)
-    await interviewPage.waitForLoad();
     await interviewPage.selectYes();
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Q10: Code Execution (boolean)
-    await interviewPage.waitForLoad();
     await interviewPage.selectYes();
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Q11: Data Analysis (boolean)
-    await interviewPage.waitForLoad();
     await interviewPage.selectYes();
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Q12: Tool Integrations (text - optional but we fill it)
-    await interviewPage.waitForLoad();
     await interviewPage.enterText("GitHub, Jira, Confluence, Slack");
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // =====================
     // OUTPUT STAGE (Q13-Q15)
     // =====================
 
     // Q13: Runtime Preference (choice)
-    await interviewPage.waitForLoad();
     await interviewPage.selectChoice("hybrid");
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Q14: Constraints (text - optional but we fill it)
-    await interviewPage.waitForLoad();
     await interviewPage.enterText("Must comply with SOC2 requirements");
-    await interviewPage.clickContinue();
+    await interviewPage.clickContinueAndWait();
 
     // Q15: Additional Notes (text - optional but we fill it)
-    await interviewPage.waitForLoad();
     await interviewPage.enterText(
       "Focus on enterprise security and scalability"
     );
@@ -405,18 +365,14 @@ test.describe("Interview Flow - Complete User Journey", () => {
 
     // Answer Q1
     await interviewPage.enterText("Progress Test Agent");
-    await interviewPage.clickContinue();
-
-    await interviewPage.waitForLoad();
+    await interviewPage.clickContinueAndWait();
     let progress = await interviewPage.getProgressPercentage();
     expect(progress).toBeGreaterThan(0);
     expect(progress).toBeLessThanOrEqual(10);
 
     // Answer Q2
     await interviewPage.enterText("Test progress tracking");
-    await interviewPage.clickContinue();
-
-    await interviewPage.waitForLoad();
+    await interviewPage.clickContinueAndWait();
     progress = await interviewPage.getProgressPercentage();
     expect(progress).toBeGreaterThan(5);
 
@@ -441,17 +397,13 @@ test.describe("Interview Flow - Complete User Journey", () => {
 
     // Answer first question
     await interviewPage.enterText("Count Test Agent");
-    await interviewPage.clickContinue();
-
-    await interviewPage.waitForLoad();
+    await interviewPage.clickContinueAndWait();
     count = await interviewPage.getQuestionCount();
     expect(count).toContain("1 of 15");
 
     // Answer second question
     await interviewPage.enterText("Test counting");
-    await interviewPage.clickContinue();
-
-    await interviewPage.waitForLoad();
+    await interviewPage.clickContinueAndWait();
     count = await interviewPage.getQuestionCount();
     expect(count).toContain("2 of 15");
   });
@@ -466,47 +418,31 @@ test.describe("Interview Flow - Complete User Journey", () => {
     // Answer all required questions up to Q12 (first optional question)
     // Q1-Q3 Discovery
     await interviewPage.enterText("Skip Test Agent");
-    await interviewPage.clickContinue();
-
-    await interviewPage.waitForLoad();
+    await interviewPage.clickContinueAndWait();
     await interviewPage.enterText("Test skipping optional");
-    await interviewPage.clickContinue();
-
-    await interviewPage.waitForLoad();
+    await interviewPage.clickContinueAndWait();
     await interviewPage.selectMultiple(["Developers"]);
     await interviewPage.clickContinue();
 
     // Q4-Q6 Requirements
     await interviewPage.waitForLoad();
     await interviewPage.selectChoice("task-focused");
-    await interviewPage.clickContinue();
-
-    await interviewPage.waitForLoad();
+    await interviewPage.clickContinueAndWait();
     await interviewPage.selectMultiple(["CLI"]);
-    await interviewPage.clickContinue();
-
-    await interviewPage.waitForLoad();
+    await interviewPage.clickContinueAndWait();
     await interviewPage.selectMultiple(["Task completion rate"]);
     await interviewPage.clickContinue();
 
     // Q7-Q11 Architecture (required)
     await interviewPage.waitForLoad();
     await interviewPage.selectChoice("none");
-    await interviewPage.clickContinue();
-
-    await interviewPage.waitForLoad();
+    await interviewPage.clickContinueAndWait();
     await interviewPage.selectNo();
-    await interviewPage.clickContinue();
-
-    await interviewPage.waitForLoad();
+    await interviewPage.clickContinueAndWait();
     await interviewPage.selectNo();
-    await interviewPage.clickContinue();
-
-    await interviewPage.waitForLoad();
+    await interviewPage.clickContinueAndWait();
     await interviewPage.selectNo();
-    await interviewPage.clickContinue();
-
-    await interviewPage.waitForLoad();
+    await interviewPage.clickContinueAndWait();
     await interviewPage.selectNo();
     await interviewPage.clickContinue();
 

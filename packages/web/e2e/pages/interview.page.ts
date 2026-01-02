@@ -76,10 +76,8 @@ export class InterviewPage {
     // Progress indicator elements - using the ProgressIndicator structure
     this.progressCard = page.locator(".lg\\:sticky").first();
     this.progressPercentage = page.getByText(/^\d+%$/);
-    this.progressStageLabel = page
-      .getByText(/^(Discovery|Requirements|Architecture|Output|Complete)$/)
-      .first();
-    this.progressQuestionCount = page.getByText(/\d+ of \d+ questions/);
+    this.progressStageLabel = page.getByTestId("current-stage-label");
+    this.progressQuestionCount = page.getByTestId("question-count");
 
     // Stage indicator elements - using text matching for stage labels
     this.stageIndicator = page.locator(".flex.items-center.justify-center");
@@ -135,6 +133,25 @@ export class InterviewPage {
   }
 
   /**
+   * Wait for a new question to appear (different from the current one)
+   * Useful after clicking Continue to wait for the next question
+   * @param previousQuestionText - The text of the previous question to wait for it to disappear
+   */
+  async waitForQuestionChange(previousQuestionText: string) {
+    // Wait for the previous question to disappear or change
+    await this.page.waitForFunction(
+      (prevText) => {
+        const heading = document.querySelector("[id^='question-heading-']");
+        return heading && !heading.textContent?.includes(prevText.slice(0, 30));
+      },
+      previousQuestionText,
+      { timeout: 10000 }
+    );
+    // Then wait for the new question heading to be stable
+    await this.questionHeading.waitFor({ state: "visible" });
+  }
+
+  /**
    * Check if the page is loaded by verifying a question is visible
    */
   async isLoaded(): Promise<boolean> {
@@ -170,7 +187,16 @@ export class InterviewPage {
    * Get the current stage name from the progress indicator
    */
   async getCurrentStage(): Promise<string> {
-    return (await this.progressStageLabel.textContent()) || "";
+    // Try testid first, fall back to text matching
+    const testIdLabel = this.page.getByTestId("current-stage-label");
+    if (await testIdLabel.isVisible({ timeout: 2000 }).catch(() => false)) {
+      return (await testIdLabel.textContent()) || "";
+    }
+
+    // Fallback: find the stage label in the progress card
+    // The progress card has a structure with the stage name
+    const progressCard = this.page.locator(".lg\\:sticky .text-sm.font-medium").first();
+    return (await progressCard.textContent()) || "";
   }
 
   /**
@@ -372,6 +398,16 @@ export class InterviewPage {
    */
   async clickContinue() {
     await this.continueButton.click();
+  }
+
+  /**
+   * Click Continue and wait for the question to change
+   * This handles the animation delay properly
+   */
+  async clickContinueAndWait() {
+    const currentText = await this.getQuestionText();
+    await this.continueButton.click();
+    await this.waitForQuestionChange(currentText);
   }
 
   /**
