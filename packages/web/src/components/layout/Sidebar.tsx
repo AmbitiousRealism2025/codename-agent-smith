@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { MessageSquare, LayoutGrid, Plus } from 'lucide-react';
+import { MessageSquare, LayoutGrid, Plus, BarChart3 } from 'lucide-react';
 import { SignedIn, SignedOut } from '@clerk/clerk-react';
 import { cn } from '@/lib/utils';
 import { SessionList } from '@/components/sessions';
@@ -8,6 +8,7 @@ import { useAdvisorStore } from '@/stores/advisor-store';
 const navItems = [
   { to: '/advisor', icon: MessageSquare, label: 'Interview' },
   { to: '/templates', icon: LayoutGrid, label: 'Templates' },
+  { to: '/analytics', icon: BarChart3, label: 'Analytics' },
 ];
 
 export function Sidebar() {

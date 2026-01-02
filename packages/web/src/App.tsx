@@ -6,6 +6,7 @@ import { LandingPage } from '@/components/pages/LandingPage';
 import { AdvisorPage } from '@/components/pages/AdvisorPage';
 import { TemplatesPage } from '@/components/pages/TemplatesPage';
 import { SettingsPage } from '@/components/pages/SettingsPage';
+import { AnalyticsPage } from '@/components/analytics';
 import { SetupPage } from '@/pages/SetupPage';
 import { InterviewPage } from '@/pages/InterviewPage';
 import { ResultsPage } from '@/pages/ResultsPage';
@@ -44,6 +45,14 @@ export function App() {
               element={
                 <AuthGuard>
                   <ProfilePage />
+                </AuthGuard>
+              }
+            />
+            <Route
+              path="/analytics"
+              element={
+                <AuthGuard>
+                  <AnalyticsPage />
                 </AuthGuard>
               }
             />
