@@ -1,0 +1,44 @@
+# Pre-PR Validation Configuration
+# Project: codename-agent-smith (Agent Advisor)
+
+pre_pr_checks:
+  # Base branch for merge conflict detection
+  base_branch: main
+
+  # Merge conflict check
+  merge_check:
+    enabled: true
+    blocking: true  # Cannot create PR with conflicts
+
+  # TypeScript type checking
+  type_check:
+    enabled: true
+    blocking: true  # Cannot create PR with type errors
+    command: "bun run typecheck"  # From package.json scripts
+
+  # ESLint + code quality
+  lint:
+    enabled: true
+    blocking: false  # Warn but don't block
+    command: "bun run lint"
+
+  # Test suite (optional - currently disabled for speed)
+  test:
+    enabled: false  # Set to true to run tests before PR creation
+    blocking: false
+    mode: "all"  # Options: none, changed, all
+    command: "bun run test"
+    timeout: 300  # 5 minutes max
+
+# Custom checks (future extension point)
+# custom_checks:
+#   - name: "E2E tests"
+#     command: "bun run test:e2e"
+#     blocking: false
+#     timeout: 600
+
+# Notes:
+# - Merge check uses git merge-tree (safe, non-invasive)
+# - Type check runs on all files (bun run tsc --noEmit)
+# - Lint warnings won't block PR creation
+# - Tests disabled by default (enable for critical PRs)

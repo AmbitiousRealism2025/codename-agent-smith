@@ -1,0 +1,34 @@
+# SC:Git Configuration
+# Project: codename-agent-smith (Agent Advisor)
+
+sc_git:
+  # Base branch for PR creation
+  base_branch: main
+
+  # Commit message settings
+  commit:
+    conventional_commits: true  # Use feat/fix/docs format
+    auto_stage: true  # Auto-stage changes before commit
+    scope_detection: true  # Auto-detect scope from changed files
+
+  # PR settings
+  pr:
+    auto_validation: true  # Always run pre-PR validation (RECOMMENDED)
+    draft: false  # Create normal PRs (not draft)
+    auto_assign: true  # Auto-assign to PR creator
+    include_validation_results: true  # Add validation summary to PR description
+
+  # Push settings
+  push:
+    set_upstream: true  # Auto-set upstream on first push
+    push_before_pr: true  # Auto-push when creating PR
+
+# Integration with pre-pr-validation
+# (These settings are inherited from .claude/pre-pr-config.yaml)
+# To customize validation behavior, edit that file instead
+
+# Notes:
+# - auto_validation is ENABLED by default (safe, catches issues early)
+# - Disable only if you have external CI that duplicates these checks
+# - conventional_commits helps maintain clean git history
+# - Validation results are included in PR description for reviewer context
