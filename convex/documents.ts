@@ -8,6 +8,9 @@ export const save = mutation({
     content: v.string(),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    const userId = identity?.subject;
+
     const existing = await ctx.db
       .query('documents')
       .withIndex('by_session', (q) => q.eq('sessionId', args.sessionId))
@@ -17,6 +20,7 @@ export const save = mutation({
       await ctx.db.patch(existing._id, {
         templateId: args.templateId,
         content: args.content,
+        userId: userId ?? existing.userId,
         createdAt: Date.now(),
       });
       return existing._id;
@@ -24,6 +28,7 @@ export const save = mutation({
 
     return await ctx.db.insert('documents', {
       sessionId: args.sessionId,
+      userId,
       templateId: args.templateId,
       content: args.content,
       createdAt: Date.now(),

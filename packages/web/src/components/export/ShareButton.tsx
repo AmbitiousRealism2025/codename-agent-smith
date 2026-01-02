@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useMutation } from 'convex/react';
 import { useAuth } from '@clerk/clerk-react';
 import { api } from '../../../../../convex/_generated/api';
@@ -53,6 +53,13 @@ export function ShareButton({
   const [copied, setCopied] = useState(false);
   const [expiration, setExpiration] = useState<ExpirationOption>('never');
   const [error, setError] = useState<string | null>(null);
+  const copyTimeoutRef = useRef<number>();
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
 
   const handleCreateShare = async () => {
     setIsCreating(true);
@@ -83,7 +90,7 @@ export function ShareButton({
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      copyTimeoutRef.current = window.setTimeout(() => setCopied(false), 2000);
     } catch {
       setError('Failed to copy to clipboard');
     }
@@ -129,10 +136,10 @@ export function ShareButton({
         {!shareUrl ? (
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Link expiration</label>
+              <label htmlFor="expiration-select" className="text-sm font-medium">Link expiration</label>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="w-full justify-between">
+                  <Button id="expiration-select" variant="outline" className="w-full justify-between">
                     {selectedLabel}
                     <ChevronDown className="h-4 w-4 opacity-50" />
                   </Button>

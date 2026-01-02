@@ -48,12 +48,14 @@ export default defineSchema({
 
   documents: defineTable({
     sessionId: v.string(),
+    userId: v.optional(v.string()),
     templateId: v.string(),
     content: v.string(),
     createdAt: v.number(),
   })
     .index('by_session', ['sessionId'])
-    .index('by_created', ['createdAt']),
+    .index('by_created', ['createdAt'])
+    .index('by_user', ['userId']),
 
   shares: defineTable({
     sessionId: v.string(),

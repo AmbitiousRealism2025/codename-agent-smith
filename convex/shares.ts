@@ -3,11 +3,9 @@ import { mutation, query } from './_generated/server';
 
 function generateShareCode(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = '';
-  for (let i = 0; i < 12; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
+  const array = new Uint8Array(12);
+  crypto.getRandomValues(array);
+  return Array.from(array, (byte) => chars[byte % chars.length]).join('');
 }
 
 export const create = mutation({
@@ -24,12 +22,26 @@ export const create = mutation({
       throw new Error('Must be authenticated to create share links');
     }
 
+    // Verify session ownership before creating share
+    const session = await ctx.db
+      .query('sessions')
+      .withIndex('by_session_id', (q) => q.eq('sessionId', args.sessionId))
+      .first();
+
+    if (!session || session.userId !== identity.subject) {
+      throw new Error('Session not found or access denied');
+    }
+
     const existing = await ctx.db
       .query('shares')
       .withIndex('by_session', (q) => q.eq('sessionId', args.sessionId))
       .first();
 
     if (existing) {
+      // Verify existing share belongs to this user
+      if (existing.userId !== identity.subject) {
+        throw new Error('Access denied');
+      }
       return { shareCode: existing.shareCode, isNew: false };
     }
 
@@ -85,6 +97,15 @@ export const getBySession = query({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
+      return null;
+    }
+
+    const session = await ctx.db
+      .query('sessions')
+      .withIndex('by_session_id', (q) => q.eq('sessionId', args.sessionId))
+      .first();
+
+    if (!session || session.userId !== identity.subject) {
       return null;
     }
 

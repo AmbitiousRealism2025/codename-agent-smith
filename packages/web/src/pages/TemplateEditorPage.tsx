@@ -123,21 +123,29 @@ export function TemplateEditorPage() {
         setTemplate(createEmptyTemplate());
       }
     } else if (isConvexId && customTemplate) {
-      const parsed = JSON.parse(customTemplate.documentSections);
-      setTemplate({
-        name: customTemplate.name,
-        description: customTemplate.description,
-        basedOn: customTemplate.basedOn,
-        capabilityTags: customTemplate.capabilityTags,
-        idealFor: customTemplate.idealFor,
-        documentSections: parsed,
-        planningChecklist: customTemplate.planningChecklist,
-        architecturePatterns: customTemplate.architecturePatterns,
-        riskConsiderations: customTemplate.riskConsiderations,
-        successCriteria: customTemplate.successCriteria,
-        implementationGuidance: customTemplate.implementationGuidance,
-      });
-      setOriginalConvexId(customTemplate._id);
+      try {
+        const parsed = JSON.parse(customTemplate.documentSections);
+        setTemplate({
+          name: customTemplate.name,
+          description: customTemplate.description,
+          basedOn: customTemplate.basedOn,
+          capabilityTags: customTemplate.capabilityTags,
+          idealFor: customTemplate.idealFor,
+          documentSections: parsed,
+          planningChecklist: customTemplate.planningChecklist,
+          architecturePatterns: customTemplate.architecturePatterns,
+          riskConsiderations: customTemplate.riskConsiderations,
+          successCriteria: customTemplate.successCriteria,
+          implementationGuidance: customTemplate.implementationGuidance,
+        });
+        setOriginalConvexId(customTemplate._id);
+      } catch {
+        toast.error('Invalid template data');
+        navigate('/templates');
+      }
+    } else if (isConvexId && customTemplate === null) {
+      toast.error('Template not found');
+      navigate('/templates');
     } else if (!isConvexId && id) {
       const builtIn = getDocumentTemplateById(id);
       if (builtIn) {

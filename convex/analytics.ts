@@ -32,12 +32,10 @@ export const getUserStats = query({
       .map(([name, count]) => ({ name, count }))
       .sort((a, b) => b.count - a.count);
 
-    const documents = await ctx.db
+    const userDocuments = await ctx.db
       .query('documents')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
       .collect();
-
-    const sessionIds = new Set(sessions.map((s) => s.sessionId));
-    const userDocuments = documents.filter((d) => sessionIds.has(d.sessionId));
 
     const archetypeCounts: Record<string, number> = {};
     userDocuments.forEach((d) => {

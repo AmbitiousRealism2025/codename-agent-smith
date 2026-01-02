@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import ShikiHighlighter from 'react-shiki';
 import { Check, Copy } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -139,11 +139,18 @@ function renderInlineFormatting(text: string): React.ReactNode {
 
 function CodeBlock({ code, language }: { code: string; language: string }) {
   const [copied, setCopied] = useState(false);
+  const timeoutRef = useRef<number>();
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(code);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    timeoutRef.current = window.setTimeout(() => setCopied(false), 2000);
   };
 
   const languageLabel = language === 'text' ? '' : language.toUpperCase();
