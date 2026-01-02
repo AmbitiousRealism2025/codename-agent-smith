@@ -1,7 +1,7 @@
 # Agent Advisor PWA - Session Handoff Document
 
 **Last Updated**: 2026-01-01  
-**Status**: Stage 2 In Progress (Tasks 010-027 Complete)
+**Status**: Stage 2 In Progress (Tasks 010-028 Complete)
 
 ---
 
@@ -38,10 +38,11 @@
 | 025 | OpenAI Provider Adapter | ✅ |
 | 026 | GLM Provider Adapter | ✅ |
 | 027 | Provider Registry Update | ✅ |
+| 028 | Export Formats (PDF, HTML) | ✅ |
 
 ### Next Up
 - **Task 023**: Cross-Device Sync Testing (manual testing required)
-- **Tasks 028-032**: E2E tests, interview enhancements, export improvements
+- **Tasks 029-032**: Interview enhancements, export improvements, documentation, polish
 
 ---
 
@@ -80,6 +81,11 @@ packages/web/src/
 │       ├── MigrationDialog.tsx      # Migration UI
 │       ├── realtime-sync.ts         # Real-time sync hook
 │       └── conflict-resolver.ts     # Last-write-wins
+│   └── export/
+│       ├── export-utils.ts          # Shared export utilities
+│       ├── html-export.ts           # HTML export with Catppuccin styles
+│       ├── pdf-export.ts            # PDF export via jspdf + html2canvas
+│       └── index.ts                 # Barrel export
 ├── stores/
 │   ├── advisor-store.ts             # Uses StorageAdapter
 │   └── sync-store.ts                # Sync state + network awareness
@@ -163,7 +169,7 @@ LOCATION: /Users/ambrealismwork/Desktop/Coding-Projects/codename-agent-smith
 BRANCH: oc-dev
 BUILD: TypeScript passes, Convex deployed
 
-COMPLETED (Tasks 010-027):
+COMPLETED (Tasks 010-028):
 - CI/CD workflow (.github/workflows/test.yml)
 - Convex setup (ConvexProvider in main.tsx)
 - Convex CRUD (sessions, responses, documents, users)
@@ -180,12 +186,12 @@ COMPLETED (Tasks 010-027):
 - OpenAI Provider Adapter (openai-adapter.ts - GPT-4o, o1 models)
 - GLM Provider Adapter (glm-adapter.ts - GLM-4 models)
 - Provider Registry Update (5 total: Anthropic, OpenRouter, MiniMax, OpenAI, GLM)
+- Export Formats (PDF, HTML) - jspdf, html2canvas, ExportFormatSelector dropdown
 
 SKIPPED:
 - Task 023: Cross-Device Sync Testing (requires manual testing)
 
 NEXT (Phase I - Testing & Enhancements):
-- Task 028: E2E Testing
 - Task 029: Interview Enhancements
 - Task 030: Export Improvements
 - Task 031: Documentation
