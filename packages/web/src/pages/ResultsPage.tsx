@@ -8,13 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { Progress } from '@/components/ui/progress';
-import { DocumentExport } from '@/components/export/DocumentExport';
+import { DocumentExport, ShareButton } from '@/components/export';
+import { PlanningDocumentGenerator } from '@/lib/documentation/document-generator';
 import { ArrowLeft, Copy, Check, ChevronDown, ChevronUp } from 'lucide-react';
 import type { AgentRecommendations, AgentRequirements } from '@/types/agent';
 
 export function ResultsPage() {
   const navigate = useNavigate();
-  const { requirements, resetInterview } = useAdvisorStore();
+  const { requirements, resetInterview, sessionId } = useAdvisorStore();
   const [recommendations, setRecommendations] = useState<AgentRecommendations | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -215,13 +216,26 @@ export function ResultsPage() {
           )}
         </Card>
 
-        <div className="mt-6">
+        <div className="mt-6 space-y-4">
           <DocumentExport
             templateId={recommendations.agentType}
             agentName={requirements.name || 'My Agent'}
             requirements={requirements as AgentRequirements}
             recommendations={recommendations}
           />
+          {sessionId && (
+            <ShareButton
+              sessionId={sessionId}
+              agentName={requirements.name || 'My Agent'}
+              templateId={recommendations.agentType}
+              documentContent={new PlanningDocumentGenerator().generate({
+                templateId: recommendations.agentType,
+                agentName: requirements.name || 'My Agent',
+                requirements: requirements as AgentRequirements,
+                recommendations,
+              })}
+            />
+          )}
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 mt-6">

@@ -1,10 +1,11 @@
 import { NavLink } from 'react-router-dom';
-import { MessageSquare, LayoutGrid, Settings } from 'lucide-react';
+import { MessageSquare, LayoutGrid, Settings, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { to: '/advisor', icon: MessageSquare, label: 'Interview' },
   { to: '/templates', icon: LayoutGrid, label: 'Templates' },
+  { to: '/analytics', icon: BarChart3, label: 'Analytics' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ];
 
