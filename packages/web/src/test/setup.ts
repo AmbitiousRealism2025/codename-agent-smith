@@ -13,8 +13,8 @@ import { beforeEach, afterEach, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
 import { clearPersistedStores } from "@/test/mocks/zustand";
 
-// Extend Vitest's expect with additional matchers if needed
-// import '@testing-library/jest-dom/vitest';  // Uncomment when @testing-library/jest-dom is installed
+// Extend Vitest's expect with @testing-library/jest-dom matchers
+import '@testing-library/jest-dom/vitest';
 
 /**
  * Mock window.matchMedia for components using media queries
