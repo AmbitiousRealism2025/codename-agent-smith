@@ -8,6 +8,21 @@
 
 ---
 
+## Context Documents (Progressive Disclosure)
+
+Load these documents **only when starting the relevant phase** to minimize context window usage:
+
+| Phase | Tasks | Load Document | Sections to Read |
+|-------|-------|---------------|------------------|
+| **F** (User Profile) | 021 | `docs/context/CLERK_CONVEX_CONTEXT.md` | §7 (User Profile Management), §8 (Schema) |
+| **G** (Cloud Sync) | 022-024 | `docs/context/CONVEX_CONTEXT.md` | §5 (React Hooks), §8 (Optimistic Updates) |
+| **H** (Providers) | 025-027 | None needed - follows existing adapter patterns |
+| **I** (Features) | 028-032 | `docs/context/CONVEX_CONTEXT.md` | §2-4 as needed for new schemas |
+
+**Strategy**: Context docs from Tasks 010-020 remain valid. Load sections only when entering specific tasks.
+
+---
+
 ## Executive Summary
 
 Tasks 021-032 complete Stage 2 with user-facing features:
@@ -142,9 +157,13 @@ INDEPENDENT TRACK (Enhanced Features - No Auth Deps):
 |------|----|-------|-------|--------------|
 | User Profile & Preferences | 021 | 4h | **Main** | `convex/users.ts`, `ProfilePage.tsx`, `UserPreferences.tsx` |
 
+**Context Documents**:
+- `docs/context/CLERK_CONVEX_CONTEXT.md` §7 (User Profile Management)
+- `docs/context/CLERK_CONVEX_CONTEXT.md` §8 (Schema with User References)
+
 **Key Actions**:
-1. Create `convex/users.ts` with CRUD for user preferences
-2. Add users table schema with theme, default provider fields
+1. Create `convex/users.ts` with CRUD for user preferences (follow §7 pattern)
+2. Add users table schema with theme, default provider fields (§8)
 3. Create `ProfilePage.tsx` with user info display
 4. Create `UserPreferences.tsx` component for preference editing
 5. Connect `ui-store.ts` to sync with Convex when authenticated
@@ -183,8 +202,12 @@ users: defineTable({
 
 **Dependencies**: Task 016 (Real-Time Sync), Task 020 (Clerk-Convex)
 
+**Context Documents**:
+- `docs/context/CONVEX_CONTEXT.md` §5 (React Hooks Usage - useQuery patterns)
+- `docs/context/CONVEX_CONTEXT.md` §8 (Optimistic Updates)
+
 **Key Actions**:
-1. Create `SessionList.tsx` using Convex `useQuery` for real-time updates
+1. Create `SessionList.tsx` using Convex `useQuery` for real-time updates (§5)
 2. Create `SessionCard.tsx` with archetype icon, date, status, actions
 3. Implement delete with confirmation dialog
 4. Add load/resume session functionality
@@ -240,6 +263,9 @@ EXPECTED OUTCOME:
 REQUIRED SKILLS: frontend-design (invoke for styling)
 
 REQUIRED TOOLS: Read, Write, Edit, Glob
+
+CONTEXT DOCUMENTS (Read First):
+- docs/context/CONVEX_CONTEXT.md §5 (React Hooks - for useQuery subscription patterns)
 
 MUST DO:
 - Use Catppuccin theme colors (see src/styles/globals.css)
@@ -478,6 +504,10 @@ CONTEXT:
 | Session Sharing (Public Links) | 029 | 4h | **Main** | `convex/shares.ts`, `SharedSessionPage.tsx`, `ShareButton.tsx` |
 
 **Dependencies**: Task 020 (Clerk-Convex Connection)
+
+**Context Documents**:
+- `docs/context/CONVEX_CONTEXT.md` §2 (Schema Definition - for shares table)
+- `docs/context/CONVEX_CONTEXT.md` §3-4 (Queries/Mutations)
 
 **Key Actions**:
 1. Create `convex/shares.ts` with share CRUD and expiration logic

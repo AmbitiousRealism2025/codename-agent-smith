@@ -8,6 +8,22 @@
 
 ---
 
+## Context Documents (Progressive Disclosure)
+
+Load these documents **only when starting the relevant phase** to minimize context window usage:
+
+| Phase | Tasks | Load Document | Sections to Read |
+|-------|-------|---------------|------------------|
+| **A2** (Convex Setup) | 011 | `docs/context/CONVEX_CONTEXT.md` | §1 Project Setup, §7 File Structure |
+| **B** (Convex Core) | 012-014 | `docs/context/CONVEX_CONTEXT.md` | §2-5 (Schema, Queries, Mutations, Hooks) |
+| **C** (Data & Sync) | 015-016 | `docs/context/CONVEX_CONTEXT.md` | §6 Index Best Practices, §9 Migration |
+| **D** (Clerk Setup) | 017 | `docs/context/CLERK_CONVEX_CONTEXT.md` | §1-2 (Dashboard Setup, Provider Setup) |
+| **E** (Auth Features) | 018-020 | `docs/context/CLERK_CONVEX_CONTEXT.md` | §3-6 (UI, Hooks, Server Auth, Routes) |
+
+**Strategy**: Don't load context docs at session start. Load the specific document when entering each phase.
+
+---
+
 ## Executive Summary
 
 Tasks 010-020 span three major capabilities:
@@ -184,11 +200,16 @@ REQUIRED SKILLS: None
 
 REQUIRED TOOLS: Read, Write, Edit, Bash
 
+CONTEXT DOCUMENTS (Read First):
+- docs/context/CONVEX_CONTEXT.md §1 (Project Setup)
+- docs/context/CONVEX_CONTEXT.md §7 (File Structure)
+
 MUST DO:
+- Read the context document sections above FIRST
 - Run: bun add convex
-- Create client.ts with Convex client setup
+- Create client.ts following the pattern in §1
 - Add ConvexProvider to main.tsx (wrap existing providers)
-- Add CONVEX_URL to .env.example with placeholder
+- Add VITE_CONVEX_URL to .env.example with placeholder
 - Test real-time connection works in dev
 - Follow existing schema in convex/schema.ts
 
@@ -200,7 +221,6 @@ MUST NOT DO:
 CONTEXT:
 - Existing schema: convex/schema.ts
 - App entry: packages/web/src/main.tsx
-- Convex docs: https://docs.convex.dev/quickstart/react
 ```
 
 **Verification Checkpoint**:
@@ -222,11 +242,13 @@ CONTEXT:
 |------|----|-------|-------|--------------|
 | Convex CRUD Functions | 012 | 6h | **Main** | `convex/sessions.ts`, `responses.ts`, `documents.ts` |
 
+**Context Documents**: `docs/context/CONVEX_CONTEXT.md` §2-4 (Schema, Queries, Mutations)
+
 **Key Actions**:
 1. Implement session CRUD: create, get, update, remove, listRecent
 2. Implement response CRUD: record, getBySession, updateResponse
 3. Implement document CRUD: save, getBySession
-4. Add proper indexes per existing schema
+4. Add proper indexes per existing schema (see §6 Index Best Practices)
 5. Test via Convex dashboard
 
 ### Step 2: Storage Adapter (Main Agent)
@@ -341,22 +363,26 @@ REQUIRED SKILLS: None
 
 REQUIRED TOOLS: Read, Write, Edit, Bash
 
+CONTEXT DOCUMENTS (Read First):
+- docs/context/CLERK_CONVEX_CONTEXT.md §1 (Clerk Dashboard Setup)
+- docs/context/CLERK_CONVEX_CONTEXT.md §2 (React Provider Setup)
+
 MUST DO:
+- Read the context document sections above FIRST
 - Run: bun add @clerk/clerk-react
-- Add ClerkProvider to main.tsx (wrap after ConvexProvider if present)
+- Add ClerkProvider to main.tsx following the pattern in §2
 - Add VITE_CLERK_PUBLISHABLE_KEY to .env.example
 - Verify no TypeScript errors after integration
-- Add comment noting where to get Clerk keys
 
 MUST NOT DO:
 - Do not create sign-in/sign-up pages yet (separate task)
 - Do not add protected routes yet (separate task)
 - Do not configure Clerk dashboard (manual step)
+- Do not add ConvexProviderWithClerk yet (Task 020)
 
 CONTEXT:
 - App entry: packages/web/src/main.tsx
 - Existing providers may include: ConvexProvider, ThemeProvider
-- Clerk docs: https://clerk.com/docs/quickstarts/react
 ```
 
 ---
@@ -407,10 +433,15 @@ REQUIRED SKILLS: None
 
 REQUIRED TOOLS: Read, Write, Edit, Glob
 
+CONTEXT DOCUMENTS (Read First):
+- docs/context/CLERK_CONVEX_CONTEXT.md §4 (Client-Side Auth Hooks)
+- docs/context/CLERK_CONVEX_CONTEXT.md §6 (Protected Routes Pattern)
+
 MUST DO:
+- Read the context document sections above FIRST
 - Read App.tsx to understand current routing structure
-- Create AuthGuard component that checks Clerk auth state
-- Use Clerk's useUser() or useAuth() hooks
+- Create AuthGuard component following the pattern in §6
+- Use useConvexAuth() hook (not useUser) per §4
 - Protect /settings route (redirect to sign-in if not authenticated)
 - Keep /interview public (anonymous allowed)
 - Make /results semi-protected (view OK, save requires auth)
@@ -419,13 +450,11 @@ MUST DO:
 MUST NOT DO:
 - Do not modify sign-in/sign-up pages (separate task)
 - Do not change the interview flow logic
-- Do not add loading spinners (use Clerk's built-in)
+- Do not add loading spinners (use the pattern from context doc)
 
 CONTEXT:
 - App.tsx: packages/web/src/App.tsx
-- Clerk hooks: useUser(), useAuth(), SignedIn, SignedOut
 - Existing route structure in App.tsx
-- Pattern reference: Clerk protected routes documentation
 
 ROUTE PROTECTION MATRIX:
 - / → Public
@@ -441,11 +470,16 @@ ROUTE PROTECTION MATRIX:
 |------|----|-------|-------|--------------|
 | Connect Clerk to Convex | 020 | 3h | **Main** | Updated schema, auth.config.ts, user-scoped queries |
 
+**Context Documents**: 
+- `docs/context/CLERK_CONVEX_CONTEXT.md` §1 (JWT Template Setup)
+- `docs/context/CLERK_CONVEX_CONTEXT.md` §5 (Server-Side Auth)
+- `docs/context/CLERK_CONVEX_CONTEXT.md` §8 (Schema with User References)
+
 **Key Actions**:
-1. Configure Clerk JWT template for Convex in Clerk dashboard
-2. Add `userId` field to sessions schema
+1. Configure Clerk JWT template for Convex in Clerk dashboard (§1)
+2. Add `userId` field to sessions schema (see §8 pattern)
 3. Add `by_user` index for efficient user-scoped queries
-4. Update Convex functions to use `ctx.auth.getUserIdentity()`
+4. Update Convex functions to use `ctx.auth.getUserIdentity()` (§5)
 5. Ensure queries return only authenticated user's data
 
 **Schema Update**:
