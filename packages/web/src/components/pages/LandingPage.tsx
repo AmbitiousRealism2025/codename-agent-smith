@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 export function LandingPage() {
@@ -13,21 +13,13 @@ export function LandingPage() {
       </a>
       <ThemeToggle />
       <main className="text-center" role="main">
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-1.5 text-sm text-muted-foreground">
-          <Sparkles size={14} className="text-accent" aria-hidden="true" />
-          Build Claude Agent SDK Apps
-        </div>
+        <img
+          src="/images/Agent-Smith-Logo-test.png"
+          alt="Agent Smith - smithing custom agent plans and templates"
+          className="mb-10 w-full max-w-xl"
+        />
 
-        <h1 className="font-display text-5xl font-bold tracking-tight text-foreground sm:text-6xl">
-          Agent Advisor
-        </h1>
-
-        <p className="mx-auto mt-6 max-w-lg text-lg text-muted-foreground">
-          A guided interview that helps you create custom Claude Agent SDK
-          applications. Answer questions, get a tailored implementation plan.
-        </p>
-
-        <div id="main-actions" className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center" tabIndex={-1}>
+        <div id="main-actions" className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center" tabIndex={-1}>
           <Link
             to="/setup"
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
