@@ -85,6 +85,7 @@ Desktop.ini
 
 # Auto Claude data directory
 .auto-claude/
+.auto-claude-status
 
 # Claude Code settings (machine-specific)
 .claude_settings.json
