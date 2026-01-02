@@ -126,24 +126,24 @@ export function QuestionCard({ question, value, onChange, onSubmit, onSkip }: Qu
         exit={{ opacity: 0, x: -30 }}
         transition={{ duration: 0.25 }}
       >
-        <Card className="border-border/50">
+        <Card className="border-border/50" data-testid="question-card">
           <CardContent className="pt-6">
-            <h2 className="text-2xl font-semibold mb-2" id={`question-heading-${question.id}`}>{question.text}</h2>
+            <h2 className="text-2xl font-semibold mb-2" id={`question-heading-${question.id}`} data-testid="question-text">{question.text}</h2>
             {question.hint && (
               <p className="text-muted-foreground mb-6" id={`hint-${question.id}`}>{question.hint}</p>
             )}
 
-            <div className="mb-8">{renderInput()}</div>
+            <div className="mb-8" data-testid="question-input">{renderInput()}</div>
 
             <div className="flex justify-between">
               {onSkip && !question.required ? (
-                <Button variant="ghost" onClick={onSkip}>
+                <Button variant="ghost" onClick={onSkip} data-testid="skip-question-button">
                   Skip
                 </Button>
               ) : (
                 <div />
               )}
-              <Button onClick={onSubmit} disabled={isDisabled}>
+              <Button onClick={onSubmit} disabled={isDisabled} data-testid="continue-button">
                 Continue
               </Button>
             </div>

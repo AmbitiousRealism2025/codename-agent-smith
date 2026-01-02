@@ -101,7 +101,7 @@ export function ProviderSelector({ onComplete }: ProviderSelectorProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="provider-selector">
       <fieldset>
         <legend className="sr-only">Select AI Provider</legend>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4" role="radiogroup" aria-label="AI Provider Selection">
@@ -123,6 +123,7 @@ export function ProviderSelector({ onComplete }: ProviderSelectorProps) {
                   handleProviderSelect(provider.id);
                 }
               }}
+              data-testid={`provider-card-${provider.id}`}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
@@ -163,6 +164,7 @@ export function ProviderSelector({ onComplete }: ProviderSelectorProps) {
               value={apiKey}
               onChange={(e) => handleApiKeyChange(e.target.value)}
               className="flex-1"
+              data-testid="api-key-input"
             />
             {hasStoredKey && (
               <Button
@@ -172,6 +174,7 @@ export function ProviderSelector({ onComplete }: ProviderSelectorProps) {
                 onClick={handleClearKey}
                 disabled={isLoading}
                 aria-label="Clear saved API key"
+                data-testid="clear-api-key-button"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
               </Button>
@@ -201,6 +204,7 @@ export function ProviderSelector({ onComplete }: ProviderSelectorProps) {
           onClick={handleSaveAndContinue}
           disabled={!apiKey.trim() || isLoading}
           className="w-full"
+          data-testid="save-continue-button"
         >
           {isLoading ? 'Saving...' : 'Save & Continue'}
         </Button>

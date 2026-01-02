@@ -62,6 +62,7 @@ export function ResultsPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         className="min-h-screen bg-background flex items-center justify-center"
+        data-testid="results-loading"
       >
         <div className="text-center">
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
@@ -87,6 +88,7 @@ export function ResultsPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="min-h-screen bg-background"
+      data-testid="results-page"
     >
       <a
         href="#results-content"
@@ -101,6 +103,7 @@ export function ResultsPage() {
           size="sm"
           onClick={() => navigate('/interview')}
           className="mb-6"
+          data-testid="back-to-interview-button"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
@@ -108,7 +111,7 @@ export function ResultsPage() {
 
         <h1 className="text-3xl font-bold mb-8">Your Agent Recommendations</h1>
 
-        <Card className="mb-6">
+        <Card className="mb-6" data-testid="recommendations-card">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>{template?.name || recommendations.agentType}</span>
@@ -168,7 +171,7 @@ export function ResultsPage() {
           </CardContent>
         </Card>
 
-        <Card className="mb-6">
+        <Card className="mb-6" data-testid="implementation-steps-card">
           <CardHeader>
             <CardTitle>Implementation Steps</CardTitle>
           </CardHeader>
@@ -186,13 +189,14 @@ export function ResultsPage() {
           </CardContent>
         </Card>
 
-        <Card className="mb-6">
+        <Card className="mb-6" data-testid="system-prompt-card">
           <CardHeader>
             <button
               onClick={() => setPromptExpanded(!promptExpanded)}
               className="flex items-center justify-between w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg"
               aria-expanded={promptExpanded}
               aria-controls="system-prompt-content"
+              data-testid="toggle-system-prompt-button"
             >
               <CardTitle>System Prompt Preview</CardTitle>
               {promptExpanded ? (
@@ -221,7 +225,7 @@ export function ResultsPage() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 mt-6">
-          <Button variant="secondary" onClick={handleCopyPrompt} className="flex-1">
+          <Button variant="secondary" onClick={handleCopyPrompt} className="flex-1" data-testid="copy-prompt-button">
             {copied ? (
               <>
                 <Check className="w-4 h-4 mr-2" />
@@ -234,7 +238,7 @@ export function ResultsPage() {
               </>
             )}
           </Button>
-          <Button variant="outline" onClick={handleStartOver}>
+          <Button variant="outline" onClick={handleStartOver} data-testid="start-over-button">
             Start Over
           </Button>
         </div>
