@@ -49,6 +49,7 @@ interface AdvisorActions {
   recordResponse: (questionId: string, value: ResponseValue) => void;
   skipQuestion: () => void;
   goToPreviousQuestion: () => void;
+  navigateToQuestion: (questionId: string) => void;
   setRecommendations: (recs: AgentRecommendations) => void;
   resetInterview: () => void;
   setGenerating: (generating: boolean) => void;
@@ -252,6 +253,23 @@ export const useAdvisorStore = create<AdvisorStore>()((set, get) => ({
         currentQuestionIndex: Math.max(0, prevStageQuestions.length - 1),
         isComplete: false,
       });
+    }
+  },
+
+  navigateToQuestion: (questionId) => {
+    const question = INTERVIEW_QUESTIONS.find((q) => q.id === questionId);
+    if (!question) return;
+
+    const stageQuestions = getQuestionsForStage(question.stage);
+    const questionIndex = stageQuestions.findIndex((q) => q.id === questionId);
+
+    if (questionIndex !== -1) {
+      set({
+        currentStage: question.stage,
+        currentQuestionIndex: questionIndex,
+        isComplete: false,
+      });
+      get()._persistToStorage().catch(console.error);
     }
   },
 

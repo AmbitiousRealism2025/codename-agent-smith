@@ -17,6 +17,20 @@ import { clearPersistedStores } from "@/test/mocks/zustand";
 import '@testing-library/jest-dom/vitest';
 
 /**
+ * Mock Convex adapter to avoid importing generated Convex API
+ * Convex is only used in production and not needed for unit tests
+ */
+vi.mock('@/lib/storage/convex-adapter', () => ({
+  createConvexAdapter: vi.fn(() => ({
+    saveSession: vi.fn(),
+    getSession: vi.fn(),
+    getLatestSession: vi.fn(),
+    getIncompleteSessions: vi.fn(),
+    deleteSession: vi.fn(),
+  })),
+}));
+
+/**
  * Mock window.matchMedia for components using media queries
  * Required for theme detection and responsive components
  */
