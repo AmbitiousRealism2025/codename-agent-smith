@@ -16,7 +16,9 @@ export function ProgressSummary() {
 
   // Calculate partial archetype classification
   const classifier = new AgentClassifier(ALL_TEMPLATES);
-  const { archetype, confidence } = classifier.getPartialArchetype(requirements);
+  const partialResult = classifier.getPartialArchetype(requirements);
+  const archetype = partialResult?.archetype ?? 'unknown';
+  const confidence = partialResult?.confidence ?? 0;
 
   // Shared content component for both mobile and desktop
   const SummaryContent = () => {

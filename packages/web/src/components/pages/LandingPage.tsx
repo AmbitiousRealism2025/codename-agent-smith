@@ -55,6 +55,7 @@ export function LandingPage() {
         </SignedIn>
       </div>
       <main className="text-center" role="main">
+        <h1 className="mb-4 text-4xl font-bold text-foreground sm:text-5xl">Agent Advisor</h1>
         <img
           src="/images/Agent-Smith-Logo-test.png"
           alt="Agent Smith - smithing custom agent plans and templates"

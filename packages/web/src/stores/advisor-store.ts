@@ -54,6 +54,7 @@ interface AdvisorActions {
   resetInterview: () => void;
   setGenerating: (generating: boolean) => void;
   getCurrentQuestion: () => (typeof INTERVIEW_QUESTIONS)[number] | null;
+  getAnsweredQuestions: () => (typeof INTERVIEW_QUESTIONS)[number][];
   getProgress: () => {
     currentStage: InterviewStage;
     stageIndex: number;
@@ -64,7 +65,6 @@ interface AdvisorActions {
     percentage: number;
   };
   canGoBack: () => boolean;
-  getAnsweredQuestions: () => (typeof INTERVIEW_QUESTIONS)[number][];
   _persistToStorage: () => Promise<void>;
 }
 
@@ -292,6 +292,11 @@ export const useAdvisorStore = create<AdvisorStore>()((set, get) => ({
     return stageQuestions[state.currentQuestionIndex] ?? null;
   },
 
+  getAnsweredQuestions: () => {
+    const state = get();
+    return INTERVIEW_QUESTIONS.filter((q) => q.id in state.responses);
+  },
+
   getProgress: () => {
     const state = get();
     const stageIndex = STAGES.indexOf(state.currentStage);
@@ -315,12 +320,6 @@ export const useAdvisorStore = create<AdvisorStore>()((set, get) => ({
   canGoBack: () => {
     const state = get();
     return state.currentQuestionIndex > 0 || STAGES.indexOf(state.currentStage) > 0;
-  },
-
-  getAnsweredQuestions: () => {
-    const state = get();
-    const answeredQuestionIds = Object.keys(state.responses);
-    return INTERVIEW_QUESTIONS.filter((q) => answeredQuestionIds.includes(q.id));
   },
 
   _persistToStorage: async () => {

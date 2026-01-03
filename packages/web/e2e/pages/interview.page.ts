@@ -87,9 +87,9 @@ export class InterviewPage {
     this.outputStage = page.getByText("Output", { exact: true });
 
     // Navigation buttons
-    this.backButton = page.getByRole("button", { name: /back/i });
-    this.continueButton = page.getByRole("button", { name: /continue/i });
-    this.skipButton = page.getByRole("button", { name: /skip/i });
+    this.backButton = page.getByTestId("interview-back-button");
+    this.continueButton = page.getByTestId("continue-button");
+    this.skipButton = page.getByTestId("skip-question-button");
 
     // Text input (Textarea for text questions)
     this.textInput = page.locator("textarea");
