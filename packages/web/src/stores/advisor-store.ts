@@ -53,6 +53,7 @@ interface AdvisorActions {
   resetInterview: () => void;
   setGenerating: (generating: boolean) => void;
   getCurrentQuestion: () => (typeof INTERVIEW_QUESTIONS)[number] | null;
+  getAnsweredQuestions: () => (typeof INTERVIEW_QUESTIONS)[number][];
   getProgress: () => {
     currentStage: InterviewStage;
     stageIndex: number;
@@ -272,6 +273,11 @@ export const useAdvisorStore = create<AdvisorStore>()((set, get) => ({
 
     const stageQuestions = getQuestionsForStage(state.currentStage);
     return stageQuestions[state.currentQuestionIndex] ?? null;
+  },
+
+  getAnsweredQuestions: () => {
+    const state = get();
+    return INTERVIEW_QUESTIONS.filter((q) => q.id in state.responses);
   },
 
   getProgress: () => {
