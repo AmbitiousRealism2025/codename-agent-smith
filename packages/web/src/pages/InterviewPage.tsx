@@ -22,7 +22,6 @@ export function InterviewPage() {
     recordResponse,
     skipQuestion,
     goToPreviousQuestion,
-    navigateToQuestion,
     canGoBack,
     isComplete,
     requirements,
@@ -55,11 +54,6 @@ export function InterviewPage() {
 
   const handleSkip = () => {
     skipQuestion();
-    setCurrentValue(undefined);
-  };
-
-  const handleQuestionClick = (questionId: string) => {
-    navigateToQuestion(questionId);
     setCurrentValue(undefined);
   };
 
@@ -132,28 +126,9 @@ export function InterviewPage() {
           <StageIndicator currentStage={progress.currentStage} />
         </div>
 
-        {/* Mobile progress summary - collapsible */}
-        <div className="mb-4 lg:hidden">
-          <ProgressSummary
-            responses={responses}
-            onQuestionClick={handleQuestionClick}
-            currentQuestionId={question.id}
-          />
-        </div>
-
         <div className="lg:flex lg:gap-8">
-          {/* Desktop progress summary sidebar */}
-          <div className="hidden lg:block lg:w-80 lg:flex-shrink-0">
-            <div className="lg:sticky lg:top-8">
-              <ProgressSummary
-                responses={responses}
-                onQuestionClick={handleQuestionClick}
-                currentQuestionId={question.id}
-              />
-            </div>
-          </div>
+          <ProgressSummary />
 
-          {/* Main content area */}
           <div className="flex-1 min-w-0">
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
               <div>

@@ -49,6 +49,7 @@ interface AdvisorActions {
   recordResponse: (questionId: string, value: ResponseValue) => void;
   skipQuestion: () => void;
   goToPreviousQuestion: () => void;
+  navigateToQuestion: (questionId: string) => void;
   setRecommendations: (recs: AgentRecommendations) => void;
   resetInterview: () => void;
   setGenerating: (generating: boolean) => void;
@@ -64,7 +65,6 @@ interface AdvisorActions {
     percentage: number;
   };
   canGoBack: () => boolean;
-  navigateToQuestion: (questionId: string) => boolean;
   _persistToStorage: () => Promise<void>;
 }
 
@@ -256,6 +256,23 @@ export const useAdvisorStore = create<AdvisorStore>()((set, get) => ({
     }
   },
 
+  navigateToQuestion: (questionId) => {
+    const question = INTERVIEW_QUESTIONS.find((q) => q.id === questionId);
+    if (!question) return;
+
+    const stageQuestions = getQuestionsForStage(question.stage);
+    const questionIndex = stageQuestions.findIndex((q) => q.id === questionId);
+
+    if (questionIndex !== -1) {
+      set({
+        currentStage: question.stage,
+        currentQuestionIndex: questionIndex,
+        isComplete: false,
+      });
+      get()._persistToStorage().catch(console.error);
+    }
+  },
+
   setRecommendations: (recs) => {
     set({ recommendations: recs, isComplete: true });
     get()._persistToStorage().catch(console.error);
@@ -303,32 +320,6 @@ export const useAdvisorStore = create<AdvisorStore>()((set, get) => ({
   canGoBack: () => {
     const state = get();
     return state.currentQuestionIndex > 0 || STAGES.indexOf(state.currentStage) > 0;
-  },
-
-  navigateToQuestion: (questionId: string) => {
-    // Find the question in the interview questions
-    const question = INTERVIEW_QUESTIONS.find((q) => q.id === questionId);
-    if (!question) {
-      return false;
-    }
-
-    // Get the stage and find the question index within that stage
-    const stage = question.stage;
-    const stageQuestions = getQuestionsForStage(stage);
-    const questionIndex = stageQuestions.findIndex((q) => q.id === questionId);
-
-    if (questionIndex === -1) {
-      return false;
-    }
-
-    // Update the store state to navigate to this question
-    set({
-      currentStage: stage,
-      currentQuestionIndex: questionIndex,
-      isComplete: false,
-    });
-
-    return true;
   },
 
   _persistToStorage: async () => {

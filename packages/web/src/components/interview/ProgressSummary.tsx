@@ -1,253 +1,155 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp, Check, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useAdvisorStore } from '@/stores/advisor-store';
+import { AgentClassifier } from '@/lib/classification/classifier';
+import { ALL_TEMPLATES, getTemplateById } from '@/templates';
+import { ClipboardList, CheckCircle2, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { INTERVIEW_QUESTIONS } from '@/lib/interview/questions';
-import type { ResponseValue, InterviewStage } from '@/types/interview';
 
-interface ProgressSummaryProps {
-  responses: Record<string, ResponseValue>;
-  onQuestionClick: (questionId: string) => void;
-  currentQuestionId?: string;
-}
+export function ProgressSummary() {
+  const [isOpen, setIsOpen] = useState(false);
+  const answeredQuestions = useAdvisorStore((state) => state.getAnsweredQuestions());
+  const navigateToQuestion = useAdvisorStore((state) => state.navigateToQuestion);
+  const currentQuestion = useAdvisorStore((state) => state.getCurrentQuestion());
+  const requirements = useAdvisorStore((state) => state.requirements);
 
-const STAGE_LABELS: Record<InterviewStage, string> = {
-  discovery: 'Discovery',
-  requirements: 'Requirements',
-  architecture: 'Architecture',
-  output: 'Output',
-  complete: 'Complete',
-};
+  // Calculate partial archetype classification
+  const classifier = new AgentClassifier(ALL_TEMPLATES);
+  const partialResult = classifier.getPartialArchetype(requirements);
+  const archetype = partialResult?.archetype ?? 'unknown';
+  const confidence = partialResult?.confidence ?? 0;
 
-// Simple archetype heuristics based on answered questions
-function getEmergingArchetype(responses: Record<string, ResponseValue>): {
-  name: string;
-  confidence: number;
-} | null {
-  const answeredCount = Object.keys(responses).length;
-  if (answeredCount < 3) return null;
-
-  const dataAnalysis = responses['q11_data_analysis'] === true;
-  const codeExecution = responses['q10_code_execution'] === true;
-  const webAccess = responses['q9_web_access'] === true;
-  const fileAccess = responses['q8_file_access'] === true;
-  const primaryOutcome = (responses['q2_primary_outcome'] as string)?.toLowerCase() ?? '';
-
-  // Simple scoring based on capabilities and primary outcome
-  let archetype = 'Automation Agent';
-  let confidence = 30 + Math.min(answeredCount * 5, 40);
-
-  if (dataAnalysis) {
-    archetype = 'Data Analyst';
-    confidence = Math.min(confidence + 15, 95);
-  } else if (codeExecution) {
-    archetype = 'Code Assistant';
-    confidence = Math.min(confidence + 15, 95);
-  } else if (webAccess && primaryOutcome.includes('research')) {
-    archetype = 'Research Agent';
-    confidence = Math.min(confidence + 15, 95);
-  } else if (fileAccess && (primaryOutcome.includes('content') || primaryOutcome.includes('blog'))) {
-    archetype = 'Content Creator';
-    confidence = Math.min(confidence + 15, 95);
-  }
-
-  return { name: archetype, confidence };
-}
-
-// Format response value for display
-function formatResponse(value: ResponseValue, maxLength = 50): string {
-  if (typeof value === 'boolean') {
-    return value ? 'Yes' : 'No';
-  }
-  if (Array.isArray(value)) {
-    const joined = value.join(', ');
-    return joined.length > maxLength ? `${joined.slice(0, maxLength)}...` : joined;
-  }
-  if (typeof value === 'string') {
-    return value.length > maxLength ? `${value.slice(0, maxLength)}...` : value;
-  }
-  return String(value);
-}
-
-export function ProgressSummary({
-  responses,
-  onQuestionClick,
-  currentQuestionId,
-}: ProgressSummaryProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  const answeredQuestions = INTERVIEW_QUESTIONS.filter((q) => q.id in responses);
-  const emergingArchetype = getEmergingArchetype(responses);
-
-  // Group answered questions by stage
-  const questionsByStage = answeredQuestions.reduce(
-    (acc, question) => {
-      const stage = question.stage;
-      if (!acc[stage]) {
-        acc[stage] = [];
-      }
-      acc[stage].push(question);
-      return acc;
-    },
-    {} as Record<InterviewStage, typeof answeredQuestions>
-  );
-
-  const stages = Object.keys(questionsByStage) as InterviewStage[];
-
-  const renderQuestionsList = () => {
+  // Shared content component for both mobile and desktop
+  const SummaryContent = () => {
+    // Empty state: no answers yet
     if (answeredQuestions.length === 0) {
       return (
-        <p className="text-sm text-muted-foreground text-center py-4" data-testid="empty-state">
-          No questions answered yet
-        </p>
+        <Card className="border-border/50" data-testid="progress-summary">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <ClipboardList size={20} aria-hidden="true" />
+              Your Progress
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <div className="mb-3 rounded-full bg-muted p-3">
+                <ClipboardList size={24} className="text-muted-foreground" aria-hidden="true" />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Start answering questions to see your progress here
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       );
     }
 
     return (
-      <ul className="space-y-4" data-testid="answered-questions-list">
-        {stages.map((stage) => (
-          <li key={stage}>
-            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-              {STAGE_LABELS[stage]}
-            </h4>
-            <ul className="space-y-1">
-              {questionsByStage[stage].map((question, index) => {
-                const isCurrent = question.id === currentQuestionId;
-                const response = responses[question.id];
-
-                // Skip if no response (shouldn't happen as we filter, but satisfies TypeScript)
-                if (response === undefined) return null;
-
-                return (
-                  <motion.li
-                    key={question.id}
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <button
-                      onClick={() => onQuestionClick(question.id)}
-                      className={cn(
-                        'w-full text-left p-2 rounded-md transition-colors',
-                        'hover:bg-muted/50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-                        isCurrent && 'bg-primary/10 border border-primary/20'
-                      )}
-                      data-testid={`answered-question-${question.id}`}
-                      aria-current={isCurrent ? 'true' : undefined}
-                    >
-                      <div className="flex items-start gap-2">
-                        <div className="mt-0.5 w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <Check className="w-2.5 h-2.5 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {question.text}
-                          </p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {formatResponse(response)}
-                          </p>
-                        </div>
-                      </div>
-                    </button>
-                  </motion.li>
-                );
-              })}
-            </ul>
-          </li>
-        ))}
-      </ul>
-    );
-  };
-
-  const renderArchetypeIndicator = () => {
-    if (!emergingArchetype) return null;
-
-    return (
-      <div
-        className="flex items-center gap-2 p-3 rounded-lg bg-primary/5 border border-primary/10 mb-4"
-        data-testid="archetype-indicator"
-      >
-        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-          <Sparkles className="w-4 h-4 text-primary" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium">Emerging: {emergingArchetype.name}</p>
-          <p className="text-xs text-muted-foreground">
-            {emergingArchetype.confidence}% confidence
+      <Card className="border-border/50" data-testid="progress-summary">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <ClipboardList size={20} aria-hidden="true" />
+            Your Progress
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-4">
+            {answeredQuestions.length} question{answeredQuestions.length !== 1 ? 's' : ''} answered
           </p>
-        </div>
-      </div>
-    );
-  };
 
-  // Mobile view: collapsible card
-  const mobileView = (
-    <div className="lg:hidden" data-testid="progress-summary-mobile">
-      <Card>
-        <CardHeader className="p-4">
-          <Button
-            variant="ghost"
-            className="w-full justify-between p-0 h-auto hover:bg-transparent"
-            onClick={() => setIsExpanded(!isExpanded)}
-            aria-expanded={isExpanded}
-            aria-controls="progress-summary-content-mobile"
-          >
-            <CardTitle className="text-base">
-              Your Progress ({answeredQuestions.length} answered)
-            </CardTitle>
-            {isExpanded ? (
-              <ChevronUp className="w-5 h-5 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="w-5 h-5 text-muted-foreground" />
-            )}
-          </Button>
-        </CardHeader>
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div
-              id="progress-summary-content-mobile"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
+          {/* Archetype Indicator */}
+          {archetype !== 'unknown' && confidence > 0 && (
+            <div
+              className="mb-4 rounded-lg border border-primary/20 bg-primary/5 p-3"
+              data-testid="archetype-indicator"
             >
-              <CardContent className="pt-0 pb-4">
-                {renderArchetypeIndicator()}
-                <div className="max-h-[300px] overflow-y-auto">
-                  {renderQuestionsList()}
+              <div className="flex items-start gap-2">
+                <Sparkles size={16} className="text-primary mt-0.5 flex-shrink-0" aria-hidden="true" />
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">
+                    Emerging Archetype
+                  </p>
+                  <p className="text-sm font-semibold text-foreground">
+                    {getTemplateById(archetype)?.name || archetype}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {Math.round(confidence * 100)}% confidence
+                  </p>
                 </div>
-              </CardContent>
-            </motion.div>
+              </div>
+            </div>
           )}
-        </AnimatePresence>
-      </Card>
-    </div>
-  );
 
-  // Desktop view: always visible sidebar
-  const desktopView = (
-    <div className="hidden lg:block" data-testid="progress-summary-desktop">
-      <Card data-testid="progress-summary">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Your Progress</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          {renderArchetypeIndicator()}
-          <div className="max-h-[400px] overflow-y-auto pr-1">
-            {renderQuestionsList()}
+          <div className="space-y-2" data-testid="answered-questions-list">
+            {answeredQuestions.map((question) => {
+              const isCurrentQuestion = currentQuestion?.id === question.id;
+              return (
+                <Button
+                  key={question.id}
+                  variant={isCurrentQuestion ? 'secondary' : 'ghost'}
+                  className="w-full justify-start text-left h-auto py-3 px-3"
+                  onClick={() => navigateToQuestion(question.id)}
+                  data-testid={`answered-question-${question.id}`}
+                >
+                  <div className="flex items-start gap-3 w-full">
+                    <CheckCircle2
+                      size={16}
+                      className="text-primary mt-0.5 flex-shrink-0"
+                      aria-hidden="true"
+                    />
+                    <span className="text-sm flex-1 line-clamp-2">{question.text}</span>
+                  </div>
+                </Button>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
+    );
+  };
 
   return (
     <>
-      {mobileView}
-      {desktopView}
+      {/* Mobile: Collapsible with toggle (<1024px) */}
+      <div className="mb-4 lg:hidden">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex w-full items-center justify-between rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          aria-expanded={isOpen}
+          aria-controls="progress-summary-mobile"
+          aria-label="Toggle progress summary"
+          data-testid="progress-summary-toggle"
+        >
+          <span className="flex items-center gap-2">
+            <ClipboardList size={18} aria-hidden="true" />
+            Your Progress ({answeredQuestions.length})
+          </span>
+          {isOpen ? (
+            <ChevronUp size={18} aria-hidden="true" />
+          ) : (
+            <ChevronDown size={18} aria-hidden="true" />
+          )}
+        </button>
+        <div
+          id="progress-summary-mobile"
+          className={cn(
+            'mt-2 transition-all duration-200',
+            isOpen ? 'block' : 'hidden'
+          )}
+        >
+          <SummaryContent />
+        </div>
+      </div>
+
+      {/* Desktop: Side panel (≥1024px) */}
+      <aside
+        className="hidden w-80 shrink-0 lg:block"
+        aria-label="Interview progress summary"
+      >
+        <SummaryContent />
+      </aside>
     </>
   );
 }

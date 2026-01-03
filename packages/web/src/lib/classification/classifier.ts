@@ -6,22 +6,6 @@ import type {
   TemplateScore
 } from './types';
 
-/**
- * Result from partial archetype classification
- */
-export interface PartialArchetypeResult {
-  /** The predicted archetype/template ID */
-  archetype: string;
-  /** The human-readable archetype name */
-  archetypeName: string;
-  /** Confidence score from 0-100, accounting for data completeness */
-  confidence: number;
-  /** Raw template score before completeness adjustment */
-  rawScore: number;
-  /** Percentage of key fields that have been answered */
-  dataCompleteness: number;
-}
-
 // Note: Templates will need to be imported from a templates module when available
 // For now, we define the template-related functions but require templates to be injected
 export class AgentClassifier {
@@ -76,170 +60,6 @@ export class AgentClassifier {
   }
 
   /**
-   * Get archetype prediction from partial/incomplete interview responses
-   * @param partialResponses - Partial responses from interview (key-value pairs)
-   * @returns Predicted archetype with confidence score adjusted for data completeness
-   */
-  getPartialArchetype(partialResponses: Record<string, unknown>): PartialArchetypeResult | null {
-    // Handle empty or no templates
-    if (this.templates.length === 0) {
-      return null;
-    }
-
-    // Handle empty responses
-    if (!partialResponses || Object.keys(partialResponses).length === 0) {
-      // Return default/first template with zero confidence
-      const defaultTemplate = this.templates[0];
-      if (!defaultTemplate) return null;
-      return {
-        archetype: defaultTemplate.id,
-        archetypeName: defaultTemplate.name,
-        confidence: 0,
-        rawScore: 0,
-        dataCompleteness: 0
-      };
-    }
-
-    // Build minimal requirements from partial responses
-    const minimalRequirements = this.buildMinimalRequirements(partialResponses);
-
-    // Score all templates
-    const scores = this.scoreAllTemplates(minimalRequirements);
-    const bestMatch = scores[0];
-
-    if (!bestMatch) {
-      return null;
-    }
-
-    const template = this.templates.find(t => t.id === bestMatch.templateId);
-    if (!template) {
-      return null;
-    }
-
-    // Calculate data completeness (percentage of key fields answered)
-    const dataCompleteness = this.calculateDataCompleteness(partialResponses);
-
-    // Adjust confidence based on data completeness
-    // More data = higher confidence in the prediction
-    const confidence = Math.round(bestMatch.score * (dataCompleteness / 100));
-
-    return {
-      archetype: template.id,
-      archetypeName: template.name,
-      confidence,
-      rawScore: bestMatch.score,
-      dataCompleteness
-    };
-  }
-
-  /**
-   * Build minimal AgentRequirements from partial interview responses
-   * Uses defaults for missing fields
-   */
-  private buildMinimalRequirements(responses: Record<string, unknown>): AgentRequirements {
-    // Default capabilities - use mutable type for memory
-    let memoryType: 'none' | 'short-term' | 'long-term' = 'none';
-
-    // Parse memory type from response
-    if (responses.q12_memory && typeof responses.q12_memory === 'string') {
-      const memoryValue = responses.q12_memory.toLowerCase();
-      if (memoryValue.includes('long')) {
-        memoryType = 'long-term';
-      } else if (memoryValue.includes('short') || memoryValue.includes('session')) {
-        memoryType = 'short-term';
-      }
-    }
-
-    const capabilities = {
-      memory: memoryType,
-      fileAccess: false,
-      webAccess: false,
-      codeExecution: false,
-      dataAnalysis: false,
-      toolIntegrations: [] as string[]
-    };
-
-    // Map responses to capabilities
-    if (responses.q8_file_access === true || responses.q8_file_access === 'Yes') {
-      capabilities.fileAccess = true;
-    }
-    if (responses.q9_web_access === true || responses.q9_web_access === 'Yes') {
-      capabilities.webAccess = true;
-    }
-    if (responses.q10_code_execution === true || responses.q10_code_execution === 'Yes') {
-      capabilities.codeExecution = true;
-    }
-    if (responses.q11_data_analysis === true || responses.q11_data_analysis === 'Yes') {
-      capabilities.dataAnalysis = true;
-    }
-    if (responses.q13_integrations && Array.isArray(responses.q13_integrations)) {
-      capabilities.toolIntegrations = responses.q13_integrations as string[];
-    }
-
-    // Build the requirements object with defaults
-    return {
-      name: (responses.q1_agent_name as string) || 'Unnamed Agent',
-      description: (responses.q2_description as string) || '',
-      primaryOutcome: (responses.q3_primary_outcome as string) || '',
-      targetAudience: Array.isArray(responses.q4_target_audience)
-        ? (responses.q4_target_audience as string[])
-        : [],
-      interactionStyle: this.parseInteractionStyle(responses.q5_interaction_style),
-      deliveryChannels: Array.isArray(responses.q6_delivery_channels)
-        ? (responses.q6_delivery_channels as string[])
-        : [],
-      successMetrics: Array.isArray(responses.q7_success_metrics)
-        ? (responses.q7_success_metrics as string[])
-        : [],
-      constraints: Array.isArray(responses.q14_constraints)
-        ? (responses.q14_constraints as string[])
-        : [],
-      capabilities,
-      additionalNotes: (responses.q15_additional_notes as string) || undefined
-    };
-  }
-
-  /**
-   * Parse interaction style from response
-   */
-  private parseInteractionStyle(value: unknown): 'conversational' | 'task-focused' | 'collaborative' {
-    if (typeof value !== 'string') return 'task-focused';
-
-    const lower = value.toLowerCase();
-    if (lower.includes('conversation')) return 'conversational';
-    if (lower.includes('collaborat')) return 'collaborative';
-    return 'task-focused';
-  }
-
-  /**
-   * Calculate data completeness as percentage of key fields answered
-   */
-  private calculateDataCompleteness(responses: Record<string, unknown>): number {
-    // Key fields that significantly impact classification
-    const keyFields = [
-      'q1_agent_name',
-      'q2_description',
-      'q3_primary_outcome',
-      'q5_interaction_style',
-      'q8_file_access',
-      'q9_web_access',
-      'q10_code_execution',
-      'q11_data_analysis',
-      'q12_memory'
-    ];
-
-    let answeredCount = 0;
-    for (const field of keyFields) {
-      const value = responses[field];
-      if (value !== undefined && value !== null && value !== '') {
-        answeredCount++;
-      }
-    }
-
-    return Math.round((answeredCount / keyFields.length) * 100);
-  }
-
-  /**
    * Score all templates against requirements
    * @param requirements - Agent requirements to match
    * @returns Sorted array of template scores (best match first)
@@ -247,6 +67,93 @@ export class AgentClassifier {
   scoreAllTemplates(requirements: AgentRequirements): TemplateScore[] {
     const scores = this.templates.map(template => this.scoreTemplate(template, requirements));
     return scores.sort((a, b) => b.score - a.score);
+  }
+
+  /**
+   * Get partial archetype classification from incomplete requirements
+   * Used during interview to show emerging archetype direction
+   * @param partialRequirements - Incomplete agent requirements
+   * @returns Archetype ID and confidence score (0-1)
+   */
+  getPartialArchetype(
+    partialRequirements: Partial<AgentRequirements>
+  ): { archetype: string; confidence: number } {
+    // Handle empty input
+    if (!partialRequirements || Object.keys(partialRequirements).length === 0) {
+      return {
+        archetype: 'unknown',
+        confidence: 0
+      };
+    }
+
+    // If we have no templates, return unknown
+    if (this.templates.length === 0) {
+      return {
+        archetype: 'unknown',
+        confidence: 0
+      };
+    }
+
+    // Build a minimal requirements object with defaults
+    // This allows us to reuse the existing scoreTemplate logic
+    const minimalRequirements: AgentRequirements = {
+      name: partialRequirements.name || '',
+      description: partialRequirements.description || '',
+      primaryOutcome: partialRequirements.primaryOutcome || '',
+      targetAudience: partialRequirements.targetAudience || [],
+      interactionStyle: partialRequirements.interactionStyle || 'conversational',
+      deliveryChannels: partialRequirements.deliveryChannels || [],
+      successMetrics: partialRequirements.successMetrics || [],
+      capabilities: partialRequirements.capabilities || {
+        memory: 'none',
+        fileAccess: false,
+        webAccess: false,
+        codeExecution: false,
+        dataAnalysis: false,
+        toolIntegrations: []
+      },
+      constraints: partialRequirements.constraints,
+      preferredTechnologies: partialRequirements.preferredTechnologies,
+      environment: partialRequirements.environment,
+      additionalNotes: partialRequirements.additionalNotes
+    };
+
+    // Score all templates using existing logic
+    const scores = this.scoreAllTemplates(minimalRequirements);
+
+    // Get best match
+    const bestMatch = scores[0];
+    if (!bestMatch) {
+      return {
+        archetype: 'unknown',
+        confidence: 0
+      };
+    }
+
+    // Calculate confidence based on:
+    // 1. The score itself (normalized 0-100)
+    // 2. How much data we actually have
+    const dataCompletenessFactors = [
+      !!partialRequirements.primaryOutcome,
+      !!partialRequirements.interactionStyle,
+      !!partialRequirements.capabilities,
+      !!partialRequirements.targetAudience && partialRequirements.targetAudience.length > 0,
+      !!partialRequirements.name,
+      !!partialRequirements.description
+    ];
+
+    const dataCompleteness = dataCompletenessFactors.filter(Boolean).length / dataCompletenessFactors.length;
+
+    // Confidence is a weighted combination of:
+    // - 70% score-based confidence (how well the data matches)
+    // - 30% data completeness (how much data we have)
+    const scoreConfidence = bestMatch.score / 100; // Normalize to 0-1
+    const confidence = Number((scoreConfidence * 0.7 + dataCompleteness * 0.3).toFixed(2));
+
+    return {
+      archetype: bestMatch.templateId,
+      confidence
+    };
   }
 
   /**
